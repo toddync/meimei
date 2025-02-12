@@ -63,7 +63,7 @@
 			<div
 				class="border-[3px] border-[#00CA4E] size-4 my-auto rounded-full"
 			></div>
-			<span class="flex-1">
+			<span class="flex-1 flex">
 				<LanguageSelect
 					val={node.attrs.language}
 					update={(e) => {
@@ -75,10 +75,9 @@
 				variant="ghost"
 				size="icon"
 				class="cursor-pointer hover:bg-accent transition-colors"
-				onclick={() =>
-					console.log(editor.storage.markdown.getMarkdown())}
+				onclick={() => navigator.clipboard.writeText(node.attrs.code)}
 			>
-				<ClipboardList />
+				<ClipboardList class="stroke-muted-foreground" />
 			</Button>
 		</div>
 		<Card.Content

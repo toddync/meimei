@@ -1,235 +1,72 @@
 <script>
-	import * as Select from "$lib/components/ui/select";
+	//@ts-nocheck
+	import { Button } from "$lib/components/ui/button";
+	import * as Command from "$lib/components/ui/command";
+	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+	import langs from "../ext/langs.svelte";
+
 	let { val, update } = $props();
+	let open = $state(false);
+
+	let name = $derived.by(() => langs.find((l) => l.tag == val).name);
+	let icon = $derived.by(() => langs.find((l) => l.tag == val).icon || null);
 </script>
 
-<Select.Root type="single" onValueChange={update}>
-	<Select.Trigger
-		class="mx-auto gap-2 border bg-transparent w-fit"
-		tabindex={null}
-	>
-		{val}
-	</Select.Trigger>
-	<Select.Content>
-		<Select.Item value="abap">ABAP</Select.Item>
-		<Select.Item value="actionscript-3">ActionScript</Select.Item>
-		<Select.Item value="ada">Ada</Select.Item>
-		<Select.Item value="angular-html">Angular HTML</Select.Item>
-		<Select.Item value="angular-ts">Angular TypeScript</Select.Item>
-		<Select.Item value="apache">Apache Conf</Select.Item>
-		<Select.Item value="apex">Apex</Select.Item>
-		<Select.Item value="apl">APL</Select.Item>
-		<Select.Item value="applescript">AppleScript</Select.Item>
-		<Select.Item value="ara">Ara</Select.Item>
-		<Select.Item value="asciidoc">AsciiDoc</Select.Item>
-		<Select.Item value="asm">Assembly</Select.Item>
-		<Select.Item value="astro">Astro</Select.Item>
-		<Select.Item value="awk">AWK</Select.Item>
-		<Select.Item value="ballerina">Ballerina</Select.Item>
-		<Select.Item value="bat">Batch File</Select.Item>
-		<Select.Item value="beancount">Beancount</Select.Item>
-		<Select.Item value="berry">Berry</Select.Item>
-		<Select.Item value="bibtex">BibTeX</Select.Item>
-		<Select.Item value="bicep">Bicep</Select.Item>
-		<Select.Item value="blade">Blade</Select.Item>
-		<Select.Item value="bsl">1C (Enterprise)</Select.Item>
-		<Select.Item value="c">C</Select.Item>
-		<Select.Item value="cadence">Cadence</Select.Item>
-		<Select.Item value="cairo">Cairo</Select.Item>
-		<Select.Item value="clarity">Clarity</Select.Item>
-		<Select.Item value="clojure">Clojure</Select.Item>
-		<Select.Item value="cmake">CMake</Select.Item>
-		<Select.Item value="cobol">COBOL</Select.Item>
-		<Select.Item value="codeowners">CODEOWNERS</Select.Item>
-		<Select.Item value="codeql">CodeQL</Select.Item>
-		<Select.Item value="coffee">CoffeeScript</Select.Item>
-		<Select.Item value="common-lisp">Common Lisp</Select.Item>
-		<Select.Item value="coq">Coq</Select.Item>
-		<Select.Item value="cpp">C++</Select.Item>
-		<Select.Item value="crystal">Crystal</Select.Item>
-		<Select.Item value="csharp">C#</Select.Item>
-		<Select.Item value="css">CSS</Select.Item>
-		<Select.Item value="csv">CSV</Select.Item>
-		<Select.Item value="cue">CUE</Select.Item>
-		<Select.Item value="cypher">Cypher</Select.Item>
-		<Select.Item value="d">D</Select.Item>
-		<Select.Item value="dart">Dart</Select.Item>
-		<Select.Item value="dax">DAX</Select.Item>
-		<Select.Item value="desktop">Desktop</Select.Item>
-		<Select.Item value="diff">Diff</Select.Item>
-		<Select.Item value="docker">Dockerfile</Select.Item>
-		<Select.Item value="dotenv">dotEnv</Select.Item>
-		<Select.Item value="dream-maker">Dream Maker</Select.Item>
-		<Select.Item value="edge">Edge</Select.Item>
-		<Select.Item value="elixir">Elixir</Select.Item>
-		<Select.Item value="elm">Elm</Select.Item>
-		<Select.Item value="emacs-lisp">Emacs Lisp</Select.Item>
-		<Select.Item value="erb">ERB</Select.Item>
-		<Select.Item value="erlang">Erlang</Select.Item>
-		<Select.Item value="fennel">Fennel</Select.Item>
-		<Select.Item value="fish">Fish</Select.Item>
-		<Select.Item value="fluent">Fluent</Select.Item>
-		<Select.Item value="fortran-fixed-form">
-			Fortran (Fixed Form)
-		</Select.Item>
-		<Select.Item value="fortran-free-form">Fortran (Free Form)</Select.Item>
-		<Select.Item value="fsharp">F#</Select.Item>
-		<Select.Item value="gdresource">GDResource</Select.Item>
-		<Select.Item value="gdscript">GDScript</Select.Item>
-		<Select.Item value="gdshader">GDShader</Select.Item>
-		<Select.Item value="genie">Genie</Select.Item>
-		<Select.Item value="gherkin">Gherkin</Select.Item>
-		<Select.Item value="git-commit">Git Commit Message</Select.Item>
-		<Select.Item value="git-rebase">Git Rebase Message</Select.Item>
-		<Select.Item value="gleam">Gleam</Select.Item>
-		<Select.Item value="glimmer-js">Glimmer JS</Select.Item>
-		<Select.Item value="glimmer-ts">Glimmer TS</Select.Item>
-		<Select.Item value="glsl">GLSL</Select.Item>
-		<Select.Item value="gnuplot">Gnuplot</Select.Item>
-		<Select.Item value="go">Go</Select.Item>
-		<Select.Item value="graphql">GraphQL</Select.Item>
-		<Select.Item value="groovy">Groovy</Select.Item>
-		<Select.Item value="hack">Hack</Select.Item>
-		<Select.Item value="haml">Ruby Haml</Select.Item>
-		<Select.Item value="handlebars">Handlebars</Select.Item>
-		<Select.Item value="haskell">Haskell</Select.Item>
-		<Select.Item value="haxe">Haxe</Select.Item>
-		<Select.Item value="hcl">HashiCorp HCL</Select.Item>
-		<Select.Item value="hjson">Hjson</Select.Item>
-		<Select.Item value="hlsl">HLSL</Select.Item>
-		<Select.Item value="html">HTML</Select.Item>
-		<Select.Item value="html-derivative">HTML (Derivative)</Select.Item>
-		<Select.Item value="http">HTTP</Select.Item>
-		<Select.Item value="hxml">HXML</Select.Item>
-		<Select.Item value="hy">Hy</Select.Item>
-		<Select.Item value="imba">Imba</Select.Item>
-		<Select.Item value="ini">INI</Select.Item>
-		<Select.Item value="java">Java</Select.Item>
-		<Select.Item value="javascript">JavaScript</Select.Item>
-		<Select.Item value="jinja">Jinja</Select.Item>
-		<Select.Item value="jison">Jison</Select.Item>
-		<Select.Item value="json">JSON</Select.Item>
-		<Select.Item value="json5">JSON5</Select.Item>
-		<Select.Item value="jsonc">JSON with Comments</Select.Item>
-		<Select.Item value="jsonl">JSON Lines</Select.Item>
-		<Select.Item value="jsonnet">Jsonnet</Select.Item>
-		<Select.Item value="jssm">JSSM</Select.Item>
-		<Select.Item value="jsx">JSX</Select.Item>
-		<Select.Item value="julia">Julia</Select.Item>
-		<Select.Item value="kotlin">Kotlin</Select.Item>
-		<Select.Item value="kusto">Kusto</Select.Item>
-		<!-- <Select.Item value="latex">LaTeX</Select.Item> -->
-		<Select.Item value="lean">Lean 4</Select.Item>
-		<Select.Item value="less">Less</Select.Item>
-		<Select.Item value="liquid">Liquid</Select.Item>
-		<Select.Item value="log">Log file</Select.Item>
-		<Select.Item value="logo">Logo</Select.Item>
-		<Select.Item value="lua">Lua</Select.Item>
-		<Select.Item value="luau">Luau</Select.Item>
-		<Select.Item value="make">Makefile</Select.Item>
-		<Select.Item value="markdown">Markdown</Select.Item>
-		<Select.Item value="marko">Marko</Select.Item>
-		<Select.Item value="matlab">MATLAB</Select.Item>
-		<Select.Item value="mdc">MDC</Select.Item>
-		<Select.Item value="mdx">MDX</Select.Item>
-		<Select.Item value="mermaid">Mermaid</Select.Item>
-		<Select.Item value="mipsasm">MIPS Assembly</Select.Item>
-		<Select.Item value="mojo">Mojo</Select.Item>
-		<Select.Item value="move">Move</Select.Item>
-		<Select.Item value="narrat">Narrat Language</Select.Item>
-		<Select.Item value="nextflow">Nextflow</Select.Item>
-		<Select.Item value="nginx">Nginx</Select.Item>
-		<Select.Item value="nim">Nim</Select.Item>
-		<Select.Item value="nix">Nix</Select.Item>
-		<Select.Item value="nushell">nushell</Select.Item>
-		<Select.Item value="objective-c">Objective-C</Select.Item>
-		<Select.Item value="objective-cpp">Objective-C++</Select.Item>
-		<Select.Item value="ocaml">OCaml</Select.Item>
-		<Select.Item value="pascal">Pascal</Select.Item>
-		<Select.Item value="perl">Perl</Select.Item>
-		<Select.Item value="php">PHP</Select.Item>
-		<Select.Item value="plsql">PL/SQL</Select.Item>
-		<Select.Item value="po">Gettext PO</Select.Item>
-		<Select.Item value="polar">Polar</Select.Item>
-		<Select.Item value="postcss">PostCSS</Select.Item>
-		<Select.Item value="powerquery">PowerQuery</Select.Item>
-		<Select.Item value="powershell">PowerShell</Select.Item>
-		<Select.Item value="prisma">Prisma</Select.Item>
-		<Select.Item value="prolog">Prolog</Select.Item>
-		<Select.Item value="proto">Protocol Buffer 3</Select.Item>
-		<Select.Item value="pug">Pug</Select.Item>
-		<Select.Item value="puppet">Puppet</Select.Item>
-		<Select.Item value="purescript">PureScript</Select.Item>
-		<Select.Item value="python">Python</Select.Item>
-		<Select.Item value="qml">QML</Select.Item>
-		<Select.Item value="qmldir">QML Directory</Select.Item>
-		<Select.Item value="qss">Qt Style Sheets</Select.Item>
-		<Select.Item value="r">R</Select.Item>
-		<Select.Item value="racket">Racket</Select.Item>
-		<Select.Item value="raku">Raku</Select.Item>
-		<Select.Item value="razor">ASP.NET Razor</Select.Item>
-		<Select.Item value="reg">Windows Registry Script</Select.Item>
-		<Select.Item value="regexp">RegExp</Select.Item>
-		<Select.Item value="rel">Rel</Select.Item>
-		<Select.Item value="riscv">RISC-V</Select.Item>
-		<Select.Item value="rst">reStructuredText</Select.Item>
-		<Select.Item value="ruby">Ruby</Select.Item>
-		<Select.Item value="rust">Rust</Select.Item>
-		<Select.Item value="sas">SAS</Select.Item>
-		<Select.Item value="sass">Sass</Select.Item>
-		<Select.Item value="scala">Scala</Select.Item>
-		<Select.Item value="scheme">Scheme</Select.Item>
-		<Select.Item value="scss">SCSS</Select.Item>
-		<Select.Item value="sdbl">1C (Query)</Select.Item>
-		<Select.Item value="shaderlab">ShaderLab</Select.Item>
-		<Select.Item value="shellscript">Shell</Select.Item>
-		<Select.Item value="shellsession">Shell Session</Select.Item>
-		<Select.Item value="smalltalk">Smalltalk</Select.Item>
-		<Select.Item value="solidity">Solidity</Select.Item>
-		<Select.Item value="soy">Closure Templates</Select.Item>
-		<Select.Item value="sparql">SPARQL</Select.Item>
-		<Select.Item value="splunk">Splunk Query Language</Select.Item>
-		<Select.Item value="sql">SQL</Select.Item>
-		<Select.Item value="ssh-config">SSH Config</Select.Item>
-		<Select.Item value="stata">Stata</Select.Item>
-		<Select.Item value="stylus">Stylus</Select.Item>
-		<Select.Item value="svelte">Svelte</Select.Item>
-		<Select.Item value="swift">Swift</Select.Item>
-		<Select.Item value="system-verilog">SystemVerilog</Select.Item>
-		<Select.Item value="systemd">Systemd Units</Select.Item>
-		<Select.Item value="talonscript">TalonScript</Select.Item>
-		<Select.Item value="tasl">Tasl</Select.Item>
-		<Select.Item value="tcl">Tcl</Select.Item>
-		<Select.Item value="templ">Templ</Select.Item>
-		<Select.Item value="terraform">Terraform</Select.Item>
-		<Select.Item value="tex">TeX</Select.Item>
-		<Select.Item value="toml">TOML</Select.Item>
-		<Select.Item value="ts-tags">TypeScript with Tags</Select.Item>
-		<Select.Item value="tsv">TSV</Select.Item>
-		<Select.Item value="tsx">TSX</Select.Item>
-		<Select.Item value="turtle">Turtle</Select.Item>
-		<Select.Item value="twig">Twig</Select.Item>
-		<Select.Item value="typescript">TypeScript</Select.Item>
-		<Select.Item value="typespec">TypeSpec</Select.Item>
-		<Select.Item value="typst">Typst</Select.Item>
-		<Select.Item value="v">V</Select.Item>
-		<Select.Item value="vala">Vala</Select.Item>
-		<Select.Item value="vb">Visual Basic</Select.Item>
-		<Select.Item value="verilog">Verilog</Select.Item>
-		<Select.Item value="vhdl">VHDL</Select.Item>
-		<Select.Item value="viml">Vim Script</Select.Item>
-		<Select.Item value="vue">Vue</Select.Item>
-		<Select.Item value="vue-html">Vue HTML</Select.Item>
-		<Select.Item value="vyper">Vyper</Select.Item>
-		<Select.Item value="wasm">WebAssembly</Select.Item>
-		<Select.Item value="wenyan">Wenyan</Select.Item>
-		<Select.Item value="wgsl">WGSL</Select.Item>
-		<Select.Item value="wikitext">Wikitext</Select.Item>
-		<Select.Item value="wolfram">Wolfram</Select.Item>
-		<Select.Item value="xml">XML</Select.Item>
-		<Select.Item value="xsl">XSL</Select.Item>
-		<Select.Item value="yaml">YAML</Select.Item>
-		<Select.Item value="zenscript">ZenScript</Select.Item>
-		<Select.Item value="zig">Zig</Select.Item>
-	</Select.Content>
-</Select.Root>
+<svelte:head>
+	<link
+		rel="stylesheet"
+		type="text/css"
+		href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css"
+	/>
+</svelte:head>
+<svelte:document onkeypress={(e) => e.keyCode == "Escape" && (open = false)} />
+
+<DropdownMenu.Root bind:open>
+	<DropdownMenu.Trigger class="mx-auto gap-2 w-fit">
+		<Button
+			variant="ghost"
+			class="mx-auto text-muted-foreground w-40 focus:outline-0 cursor-pointer"
+		>
+			{#if icon}
+				<span class="size-4 my-auto">
+					<!-- svelte-ignore svelte_component_deprecated -->
+					<svelte:component this={icon} />
+				</span>
+			{:else}
+				<i class="devicon-{val}-plain"></i>
+			{/if}
+			{name}
+		</Button>
+	</DropdownMenu.Trigger>
+	<DropdownMenu.Content>
+		<DropdownMenu.Group>
+			<Command.Root>
+				<Command.Input placeholder="{val}..." />
+				<Command.List class="mt-2 max-h-60">
+					<Command.Empty>No results found.</Command.Empty>
+
+					{#each langs as lang}
+						<Command.Item
+							onSelect={() => {
+								open = false;
+								update(lang.tag);
+							}}
+							onclick={() => {
+								open = false;
+								update(lang.tag);
+							}}
+						>
+							{#if lang.icon}
+								<!-- svelte-ignore svelte_component_deprecated -->
+								<svelte:component this={lang.icon} />
+							{:else}
+								<i class="devicon-{lang.tag}-plain"></i>
+							{/if}
+							{lang.name}
+						</Command.Item>
+					{/each}
+				</Command.List>
+			</Command.Root>
+		</DropdownMenu.Group>
+	</DropdownMenu.Content>
+</DropdownMenu.Root>

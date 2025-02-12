@@ -4,6 +4,7 @@
 	import { Editor } from "@tiptap/core";
 	import CharacterCount from "@tiptap/extension-character-count";
 	import { Color } from "@tiptap/extension-color";
+	import Gapcursor from "@tiptap/extension-gapcursor";
 	import ListItem from "@tiptap/extension-list-item";
 	import TextAlign from "@tiptap/extension-text-align";
 	import TextStyle from "@tiptap/extension-text-style";
@@ -15,7 +16,6 @@
 	import BubbleMenu from "./BubbleMenu.svelte";
 	import { CodeBlockExt } from "./ext/codeBlock";
 	import { CounterExt } from "./ext/counter";
-	import Gapcursor from "@tiptap/extension-gapcursor";
 
 	let editor = $state() as Readable<Editor>;
 	let { content = $bindable(""), change = () => {} } = $props();
@@ -46,9 +46,8 @@
 				}
 			);
 
-			console.clear();
-			$editor?.commands?.insertContentAt(0, converted);
-			setTimeout(() => $editor?.commands?.focus(0), 200);
+			$editor?.commands?.insertContent(converted);
+			$editor?.commands?.focus(0);
 			(async () => {
 				count = {
 					words: $editor?.storage.characterCount.words(),
