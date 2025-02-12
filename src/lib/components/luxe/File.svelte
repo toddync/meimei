@@ -1,26 +1,30 @@
 <script lang="ts">
 	//@ts-nocheck
-	import { FileText } from "lucide-svelte";
-	import { Button } from "../ui/button";
 	import { Active, TabsList } from "$lib/stores/tabStore.svelte";
+	import { FileText, PenTool } from "lucide-svelte";
+	import { Button } from "../ui/button";
 
-	let { path, ext, name } = $props();
+	let { path, extension, baseName } = $props();
 </script>
 
 <Button
-	class="p-0 m-0 w-full! min-w-fit focus:outline-hidden justify-start"
+	data-selected={$Active == path || null}
+	class="m-0 w-full overflow-ellipsis truncate focus:outline-hidden justify-start data-[selected]:bg-accent"
 	variant="ghost"
 	onclick={() => {
 		if (!TabsList.find((e) => e.path == path)) {
 			TabsList.push({
 				path,
-				name,
-				ext,
+				baseName,
+				extension,
 			});
 		}
 		$Active = path;
 	}}
 >
-	<FileText class="size-4! my-auto text-zinc-400" />
-	{name}
+	<FileText
+		data-selected={$Active == path || null}
+		class="size-4! my-auto stroke-zinc-400 data-[selected]:stroke-pink-500"
+	/>
+	{baseName}
 </Button>

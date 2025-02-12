@@ -1,5 +1,4 @@
 @import "tailwindcss";
-
 @config '../tailwind.config.ts';
 
 @layer base {
@@ -77,8 +76,12 @@
 	}
 }
 
+* {
+	@apply focus:outline-0 focus:ring-0;
+}
+
 .editor {
-	@apply focus:outline-hidden min-w-full h-full! dark:prose-invert lg:prose-lg prose prose-sm sm:prose-base xl:prose-xl;
+	@apply dark:prose-invert focus:outline-hidden min-w-full h-full! lg:prose-lg prose prose-sm sm:prose-base xl:prose-xl;
 	* {
 		p {
 			@apply m-0;

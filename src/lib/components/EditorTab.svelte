@@ -5,7 +5,6 @@
 	import Textarea from "$lib/components/ui/textarea/textarea.svelte";
 	import { readTextFile } from "@tauri-apps/plugin-fs";
 	import { onMount } from "svelte";
-	import { fade } from "svelte/transition";
 
 	let {
 		file = $bindable({
@@ -18,8 +17,8 @@
 	let content = $state("");
 
 	onMount(async () => {
-		if (file.ext == "txt" || file.ext == "md") {
-			title.dataset.clonedVal = file.name;
+		if (file.extension == "txt" || file.extension == "md") {
+			title.dataset.clonedVal = file.baseName;
 			content = await readTextFile(file.path);
 		}
 	});
@@ -37,7 +36,7 @@
 			<Textarea
 				rows={1}
 				class="p-2 text-4xl! font-extrabold break-words resize-none focus-visible:border-foreground/60 focus-visible:ring-opacity-0 min-h-0! rounded-l-xl border-none"
-				bind:value={file.name}
+				bind:value={file.baseName}
 				onchange={(e) =>
 					(e.target.parentNode.dataset.clonedVal = e.target.value)}
 				oninput={(e) =>

@@ -1,9 +1,15 @@
 <script lang="ts">
 	//@ts-nocheck
+	import Commands from "$lib/components/Commands.svelte";
 	import Sidebar_ from "$lib/components/Sidebar.svelte";
 	import Button from "$lib/components/ui/button/button.svelte";
 	import * as Sidebar from "$lib/components/ui/sidebar";
 	import { highlighter } from "$lib/shiki";
+	import {
+		Files as FILES,
+		loadFiles,
+		Root,
+	} from "$lib/stores/filesStore.svelte";
 	import { flowerLotus } from "@lucide/lab";
 	import { Files, Icon } from "lucide-svelte";
 	import { bundledLanguages, createHighlighter } from "shiki/bundle/web";
@@ -14,6 +20,10 @@
 			themes: ["github-dark-default"],
 			langs: Object.keys(bundledLanguages),
 		});
+	})();
+	(async () => {
+		$Root = "/home/danny/vaults/D&D/";
+		$FILES = await loadFiles($Root);
 	})();
 
 	let open = $state(
@@ -55,6 +65,7 @@
 		<Sidebar_ />
 		<main class="flex flex-1 overflow-x-hidden bg-background">
 			{@render children?.()}
+			<Commands />
 		</main>
 	</Sidebar.Provider>
 </main>
