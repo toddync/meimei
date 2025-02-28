@@ -35,7 +35,10 @@
 			{:else}
 				<i class="devicon-{val}-plain"></i>
 			{/if}
-			{name}
+
+			<span class="mx-auto">
+				{name}
+			</span>
 		</Button>
 	</DropdownMenu.Trigger>
 	<DropdownMenu.Content>

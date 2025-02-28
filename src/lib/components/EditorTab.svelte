@@ -3,8 +3,10 @@
 	import Editor from "$lib/components/Editor/index.svelte";
 	import * as Tabs from "$lib/components/ui/tabs";
 	import Textarea from "$lib/components/ui/textarea/textarea.svelte";
-	import { readTextFile } from "@tauri-apps/plugin-fs";
-	import { onMount } from "svelte";
+	import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
+	import { Editor as Editor_ } from "@tiptap/core";
+	import { onMount, setContext } from "svelte";
+	import type { Readable } from "svelte/store";
 
 	let {
 		file = $bindable({
@@ -22,12 +24,16 @@
 			content = await readTextFile(file.path);
 		}
 	});
+
+	async function save(text) {
+		await writeTextFile(file.path, text);
+	}
 </script>
 
 <div>
 	<Tabs.Content
 		value={file.path}
-		class="select-none mt-12 mx-auto max-w-[900px] w-full"
+		class="mx-auto mt-24 w-full max-w-[900px] select-none"
 	>
 		<div
 			bind:this={title}
@@ -35,7 +41,7 @@
 		>
 			<Textarea
 				rows={1}
-				class="p-2 text-4xl! font-extrabold break-words resize-none focus-visible:border-foreground/60 focus-visible:ring-opacity-0 min-h-0! rounded-l-xl border-none"
+				class="focus-visible:ring-opacity-0 p-2 focus-visible:border-foreground/60 border-none rounded-l-xl min-h-0! font-extrabold text-4xl! break-words resize-none"
 				bind:value={file.baseName}
 				onchange={(e) =>
 					(e.target.parentNode.dataset.clonedVal = e.target.value)}
@@ -44,6 +50,11 @@
 			/>
 		</div>
 
-		<Editor bind:content />
+		<Editor
+			bind:content
+			change={(editor) => {
+				save(editor.storage.markdown.getMarkdown());
+			}}
+		/>
 	</Tabs.Content>
 </div>

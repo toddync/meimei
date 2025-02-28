@@ -5,6 +5,18 @@ import { writable } from "svelte/store";
 export let Root = writable("");
 export let Files = writable({ tree: [], raw: [] });
 
+export function encodeFilePath(path) {
+	return path.replace(
+		/[^a-zA-Z0-9-/:_]/g,
+		(c) => `_${c.charCodeAt(0).toString(16).toUpperCase()}`
+	);
+}
+
+export function decodeFilePath(label) {
+	return label.replace(/_([0-9A-F]{2})/g, (_, hex) =>
+		String.fromCharCode(parseInt(hex, 16))
+	);
+}
 export async function loadFiles(base) {
 	let files = { tree: [], raw: [] };
 	let fileRoot = await readDir(base);
@@ -18,7 +30,6 @@ export async function loadFiles(base) {
 	for (let i = 0; i < fileRoot.length; i++) {
 		files.tree.push(await expand(fileRoot[i], base));
 	}
-	console.log(files);
 	return files;
 
 	async function expand(entry, base) {

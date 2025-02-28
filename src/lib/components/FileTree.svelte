@@ -2,9 +2,9 @@
 	//@ts-nocheck
 	import Folder from "$lib/components/luxe/Folder.svelte";
 	import { Files } from "$lib/stores/filesStore.svelte";
+	import { slide } from "svelte/transition";
 	import File from "./luxe/File.svelte";
 
-	let base = "/home/danny/vaults/D&D/";
 	let root = $state([]);
 </script>
 

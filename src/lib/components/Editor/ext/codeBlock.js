@@ -11,6 +11,7 @@ export const CodeBlockExt = Node.create({
 	group: "block",
 	inline: false,
 	atom: true,
+	marks: "",
 
 	addAttributes() {
 		return {
@@ -23,9 +24,9 @@ export const CodeBlockExt = Node.create({
 		};
 	},
 
-	parseHTML: () => [{ tag: "code-block" }],
 	addNodeView: () => SvelteNodeViewRenderer(CodeBlock),
 
+	parseHTML: () => [{ tag: "code-block" }],
 	renderHTML: ({ HTMLAttributes }) => [
 		"code-block",
 		mergeAttributes(HTMLAttributes),
@@ -41,11 +42,6 @@ export const CodeBlockExt = Node.create({
 					state.write(code);
 					state.write("\n```");
 					state.closeBlock(node);
-				},
-			},
-			parse: {
-				setup(e) {
-					console.log(e);
 				},
 			},
 		};

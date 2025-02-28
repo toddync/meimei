@@ -3,7 +3,7 @@
 	import { Button } from "$lib/components/ui/button";
 	import * as Card from "$lib/components/ui/card";
 	import type { NodeViewProps } from "@tiptap/core";
-	import { ClipboardList } from "lucide-svelte";
+	import { Clipboard } from "lucide-svelte";
 	import { onMount } from "svelte";
 	import { NodeViewWrapper } from "svelte-tiptap";
 	import LanguageSelect from "./LanguageSelect.svelte";
@@ -35,12 +35,8 @@
 		}
 	});
 
-	let timer = $state();
 	function update(code) {
-		clearTimeout(timer);
-		timer = setTimeout(() => {
-			updateAttributes({ code });
-		}, 100);
+		updateAttributes({ code });
 	}
 </script>
 
@@ -77,7 +73,7 @@
 				class="cursor-pointer hover:bg-accent transition-colors"
 				onclick={() => navigator.clipboard.writeText(node.attrs.code)}
 			>
-				<ClipboardList class="stroke-muted-foreground" />
+				<Clipboard class="stroke-muted-foreground" />
 			</Button>
 		</div>
 		<Card.Content

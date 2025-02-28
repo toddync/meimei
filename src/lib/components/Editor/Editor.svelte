@@ -4,7 +4,6 @@
 	import { Editor } from "@tiptap/core";
 	import CharacterCount from "@tiptap/extension-character-count";
 	import { Color } from "@tiptap/extension-color";
-	import Gapcursor from "@tiptap/extension-gapcursor";
 	import ListItem from "@tiptap/extension-list-item";
 	import TextAlign from "@tiptap/extension-text-align";
 	import TextStyle from "@tiptap/extension-text-style";
@@ -17,8 +16,11 @@
 	import { CodeBlockExt } from "./ext/codeBlock";
 	import { CounterExt } from "./ext/counter";
 
-	let editor = $state() as Readable<Editor>;
-	let { content = $bindable(""), change = () => {} } = $props();
+	let {
+		editor = $bindable() as Readable<Editor>,
+		content = $bindable(""),
+		change = () => {},
+	} = $props();
 
 	let count = $state({
 		words: 0,
@@ -35,8 +37,8 @@
 					.replace(/'/g, "&#39;")
 					.replace(/</g, "&lt;")
 					.replace(/>/g, "&gt;")
-					.replace(/\n/g, "&#10;") // Preserve newlines
-					.replace(/\r/g, "&#13;"); // Preserve carriage returns
+					.replace(/\n/g, "&#10;")
+					.replace(/\r/g, "&#13;");
 
 			const converted = content.replace(
 				/```(\w+)\n([\s\S]*?)\n```(?!.)/g,
@@ -46,8 +48,12 @@
 				}
 			);
 
-			$editor?.commands?.insertContent(converted);
-			$editor?.commands?.focus(0);
+			$editor?.commands?.insertContentAt(0, converted);
+
+			setTimeout(() => {
+				$editor.commands.focus(0, { scrollIntoView: true });
+			}, 200);
+
 			(async () => {
 				count = {
 					words: $editor?.storage.characterCount.words(),
@@ -63,7 +69,6 @@
 				CodeBlockExt,
 				CounterExt,
 
-				Gapcursor,
 				CharacterCount,
 				Color.configure({ types: [TextStyle.name, ListItem.name] }),
 				TextStyle.configure({ types: [ListItem.name] }),
@@ -90,9 +95,9 @@
 					orderedList: {
 						keepMarks: true,
 					},
-					heading: {
-						levels: [1, 2, 3],
-					},
+					// heading: {
+					// 	levels: [1, 2, 3],
+					// },
 					codeBlock: false,
 					code: false,
 				}),
@@ -104,13 +109,13 @@
 			},
 			content: content,
 			onUpdate() {
-				change?.(editor);
-				(async () => {
-					count = {
-						words: $editor?.storage.characterCount.words(),
-						chars: $editor?.storage.characterCount.characters(),
-					};
-				})();
+				change?.($editor);
+				// (async () => {
+				// 	count = {
+				// 		words: $editor?.storage.characterCount.words(),
+				// 		chars: $editor?.storage.characterCount.characters(),
+				// 	};
+				// })();
 			},
 			onSelectionUpdate() {
 				const { selection } = $editor.state;
@@ -129,19 +134,19 @@
 	});
 </script>
 
-<div class="pb-5 max-w-[95%]! mx-auto h-full select-none">
+<div class="mx-auto pb-5 max-w-[95%]! h-full select-none">
 	<BubbleMenu editor={$editor} />
 
-	<EditorContent editor={$editor} class="editor" />
+	<EditorContent editor={$editor} class="mx-auto editor" />
 </div>
 
-{#if editor}
-	<Card.Root class="fixed bottom-2 right-2 select-none hidden">
+<!-- {#if editor}
+	<Card.Root class="right-2 bottom-2 fixed select-none">
 		<Card.Content class="p-2">
 			{count.words} words, {count.chars} characters
 		</Card.Content>
 	</Card.Root>
-{/if}
+{/if} -->
 
 <!--
 	BubbleMenuExt.configure({

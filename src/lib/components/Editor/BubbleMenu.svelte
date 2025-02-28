@@ -37,9 +37,8 @@
 		tippyOptions={{
 			zIndex: 10,
 			placement: "top",
-			interactive: true,
 			maxWidth: "calc(100vw - 16px)",
-			animateFill: true,
+			interactive: true,
 			// getReferenceClientRect: () => {
 			// 	const {
 			// 		state: {
@@ -66,18 +65,18 @@
 			// 				: fromCoords.top,
 			// 	};
 			// },
-			onHide: () => {
-				let { from, to } = editor?.state?.selection || {
-					from: 0,
-					to: 1,
-				};
-				return from == to;
-			},
-		}}
-		shouldShow={({ from, to }) => {
-			return from != to;
+			// onHide: () => {
+			// 	let { from, to } = editor?.state?.selection || {
+			// 		from: 0,
+			// 		to: 1,
+			// 	};
+			// 	return from == to;
+			// },
 		}}
 	>
+		<!-- shouldShow={({ from, to }) => {
+			return from != to;
+		}} -->
 		<Card.Root>
 			<Card.Content class="flex gap-2 p-1">
 				<Popover.Root>

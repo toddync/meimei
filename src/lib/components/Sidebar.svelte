@@ -29,7 +29,7 @@
 		$SIDEBAR_WIDTH = `${Math.max(256, Math.min(x - 48, innerWidth.current * 0.7))}px`;
 	}}
 />
-<Sidebar.Root class="ml-[3rem] mt-10 flex-1">
+<Sidebar.Root class="flex-1 mt-10 ml-[3rem]">
 	<Sidebar.Content class="pt-3">
 		<FileTree />
 	</Sidebar.Content>
@@ -38,6 +38,6 @@
 	<div
 		data-dragging={dragging || null}
 		onmousedown={() => (dragging = true)}
-		class="h-full w-2 z-50 absolute right-0 translate-x-1/2 hover:bg-pink-900 data-dragging:bg-pink-900 transition-colors cursor-move"
+		class="right-0 z-50 absolute data-dragging:bg-pink-900 hover:bg-pink-900 w-2 h-full transition-colors translate-x-1/2 cursor-move"
 	></div>
 </Sidebar.Root>
