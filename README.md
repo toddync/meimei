@@ -1,6 +1,6 @@
 # Meimei
 
-Meimei is a modern, feature-rich text editor designed for seamless note-taking and markdown editing. Built with **Tauri** and **Svelte**, it combines performance, portability, and a sleek, minimal UI to create a distraction-free yet powerful writing experience.
+Meimei is a modern, feature-rich text editor designed for seamless note-taking and markdown editing. Built with **Tauri** and **React**, it combines performance, portability, and a sleek, minimal UI to create a distraction-free yet powerful writing experience.
 
 ## ✨ Features
 
@@ -22,12 +22,8 @@ Meimei is intended to be as feature-rich as possible while maintaining its simpl
 -   [ ] Plugin system
 -   [ ] Mobile version
 
-## 💖 A Gift for a Friend
+## 🎁 A Gift for a Friend
 
-Meimei was created as a request and a parting gift for a close friend, which goes by the same nickname. As life takes us on different paths, this project is my way of saying thank you—for the time shared, the conversations, and the inspiration that led to its creation. It’s a small gesture, but one made with care, and I hope it serves as something meaningful and useful.
+Meimei was created as a special birthday gift for a dear friend who shares the same nickname. This is my way of saying thank you—for the memories, the conversations, and the inspiration that sparked this little project. It’s a heartfelt gesture, made with love, and I hope it brings a bit of joy and meaning in return.
 
-Even beyond its original purpose, Meimei is for anyone who values a simple, thoughtful writing experience. Whether you're jotting down thoughts, crafting stories, or organizing ideas, I hope it helps in some way.
-
-## 📜 License
-
-Meimei is open-source and licensed under the MIT License.
+Though it began as a personal gift, Meimei is meant for anyone who enjoys a quiet, thoughtful space to write. Whether you're scribbling ideas, journaling, or crafting stories, I hope it brings something helpful and kind to your day.
