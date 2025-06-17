@@ -4,15 +4,15 @@ import {
   SidebarInset,
   SidebarProvider
 } from "@/components/ui/sidebar";
-import { flowerLotus } from "@lucide/lab";
 import { Window } from "@tauri-apps/api/window";
-import { Icon } from "lucide-react";
-import { useEffect } from "react";
+import { exists, mkdir } from '@tauri-apps/plugin-fs';
+import { load } from '@tauri-apps/plugin-store';
+import { useEffect, useState } from "react";
 import Commands from "./lib/components/Commands";
-import DotsMenu from "./lib/components/dots-menu";
+import Loader from "./lib/components/loader";
 import PageResolver from "./lib/components/page-resolver";
 import { useFilesStore } from "./lib/stores/Files";
-import { loadFilesFromDisk } from "./lib/stores/loadFiles";
+import { useTabStore } from "./lib/stores/tab-store";
 import { useWindowStore } from "./lib/stores/window";
 
 export default function Page() {
@@ -20,29 +20,31 @@ export default function Page() {
   let setFiles = useFilesStore(s => s.setFiles)
   const defaultOpen = localStorage.getItem("sidebar:open") === "true"
 
+  let hydrateFiles = useFilesStore(s => s.hydrate)
+  let hydrateTabs = useTabStore(s => s.hydrate)
+
+  const [loaded, setLoaded] = useState<boolean>(false)
+
   useEffect(() => {
+    let root = "/home/danny/vaults/D&D";
+
     (async () => {
-      loadAndReconcile("/home/danny/vaults/D&D/")
-      // let files = await loadFiles("/home/danny/vaults/D&D/");
-      // setFiles(files)
+      if (!(await exists(`${root}/.meimei`))) await mkdir(`${root}/.meimei`);
+      globalThis.store = await load(root + "/.meimei/store.json", {
+        autoSave: true
+      })
+
+      await hydrateFiles(root)
+      await hydrateTabs()
+
+      setLoaded(true)
     })()
   })
 
 
   return (
-    <>
-      <Commands />
-
-      <div className="h-8 bg-accent border-b flex">
-        <div className="w-12 flex">
-          <div className="mx-auto text-sidebar-primary flex aspect-square size-8 items-center justify-center">
-            <Icon iconNode={flowerLotus} className="size-5 stroke-2" />
-          </div>
-        </div>
-        <DotsMenu />
-      </div>
-
-      <main className="overflow-hidden h-[calc(100svh_-_32px)] page-h">
+    <main className="overflow-clip h-svh page-h flex flex-col">
+      {loaded ?
         <SidebarProvider
           defaultOpen={defaultOpen}
           style={
@@ -51,20 +53,14 @@ export default function Page() {
             } as React.CSSProperties
           }
         >
+          <Commands />
           <Sidebar />
           <SidebarInset className="overflow-hidden page-h">
             <PageResolver />
           </SidebarInset>
         </SidebarProvider>
-      </main>
-    </>
+        : <Loader />
+      }
+    </main>
   )
-}
-
-export async function loadAndReconcile(base: string) {
-  const files = await loadFilesFromDisk(base)
-  const availablePaths = files.raw.map(f => f.path)
-  const store = useFilesStore.getState()
-  store.setFiles(files)
-  store.reconcileExpanded(availablePaths)
 }

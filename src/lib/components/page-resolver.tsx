@@ -39,7 +39,7 @@ export default function PageResolver() {
     return (
         //@ts-ignore
         <TabContext value={value} className="page-h TabContext">
-            <div className='bg-muted-foreground/5 dark:bg-sidebar max-h-11 sticky top-0 z-50 border-b'>
+            <div className='bg-muted-foreground/5 dark:bg-sidebar h-11 sticky top-0 z-50 border-b shadow-background shadow-2xl'>
                 <Tabs
                     className="TabList"
                     scrollButtons="auto"

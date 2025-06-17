@@ -10,8 +10,11 @@ import { useEffect, useState } from "react"
 import { useCommandStore } from "../stores/command"
 import { File, useFilesStore } from "../stores/Files"
 import { Tab, useTabStore } from "../stores/tab-store"
+import { useEditorFocusStore } from "../stores/editor-focus"
 
 export default function Commands() {
+    const focus = useEditorFocusStore(s => s.focus)
+
     const open = useCommandStore(s => s.open)
     const toggle = useCommandStore(s => s.toggle)
     const setOpen = useCommandStore(s => s.setOpen)
@@ -51,7 +54,11 @@ export default function Commands() {
     }, [])
 
     return (
-        <CommandDialog open={open} onOpenChange={setOpen} showCloseButton={false}>
+        <CommandDialog open={open} onOpenChange={(o) => {
+            setOpen(o)
+
+            if (!o) focus?.()
+        }} showCloseButton={false}>
             <CommandInput placeholder="Type a command or search..." />
             <CommandList>
                 <CommandEmpty>No results found.</CommandEmpty>
@@ -65,6 +72,7 @@ export default function Commands() {
                                 onSelect={() => {
                                     select(tab.value)
                                     toggle()
+                                    focus?.()
                                 }}>
                                 <span className="whitespace-nowrap overflow-hidden text-ellipsis">
                                     {tab.data.name}
@@ -83,8 +91,10 @@ export default function Commands() {
                                     onSelect={() => {
                                         addTab({ data: { ...file }, value: file.path, type: "editor" })
                                         select(file.path)
+                                        //@ts-ignore
                                         setSelected(file)
                                         toggle()
+                                        focus?.()
                                     }}>
                                     <span className="whitespace-nowrap overflow-hidden text-ellipsis">
                                         {file.name}

@@ -1,6 +1,6 @@
-// useFilesStore.ts
+//@ts-nocheck
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { loadFilesFromDisk } from './loadFiles'
 
 export interface File {
     dir: boolean
@@ -17,62 +17,92 @@ export interface FileNode {
     children?: FileNode[]
 }
 
-interface FilesState {
-    files: { tree: FileNode[], raw: File[] }
-    expanded: Record<string, boolean>
-    selected?: string // path
-
-    setFiles: (files: { tree: FileNode[], raw: File[] }) => void
-    toggleExpanded: (path: string) => void
-    isExpanded: (path: string) => boolean
-    setSelected: (path: string) => void
-    reconcileExpanded: (availablePaths: string[]) => void
+export interface Selection {
+    from: number,
+    to: number
 }
 
-export const useFilesStore = create<FilesState>()(
-    persist(
-        (set, get) => ({
-            files: { tree: [], raw: [] },
-            expanded: {},
-            selected: undefined,
+interface FilesStore {
+    files: {
+        tree: File[];
+        raw: File[];
+    };
+    selected?: string;
+    expanded: Record<string, boolean>;
+    selection: Record<string, Selection>;
 
-            setFiles: (files) => set({ files }),
+    setFiles: (files: { tree: File[]; raw: File[] }) => void;
+    setSelected: (path: string) => void;
+    isExpanded: (path: string) => boolean;
+    toggleExpanded: (path: string) => void;
+    getSelection: (path: string) => Selection,
+    setSelection: (path: string, s: Selection) => void,
 
-            toggleExpanded: (path) => {
-                const current = get().expanded[path] ?? false
-                set(state => ({
-                    expanded: {
-                        ...state.expanded,
-                        [path]: !current
-                    }
-                }))
-            },
+    hydrate: (base: string) => Promise<void>;
+    persist: () => Promise<void>;
+}
 
-            isExpanded: (path) => {
-                return get().expanded[path] ?? false
-            },
+export const useFilesStore = create<FilesStore>((set, get) => ({
+    files: { tree: [], raw: [] },
+    selected: undefined,
+    expanded: {},
+    selection: {},
 
-            setSelected: (path) => {
-                set({ selected: path })
-            },
+    setFiles: (files) => set({ files }),
 
-            reconcileExpanded: (availablePaths) => {
-                const validPaths = new Set(availablePaths)
-                const reconciled = Object.fromEntries(
-                    Object.entries(get().expanded).filter(([path]) => validPaths.has(path))
-                )
-                set({ expanded: reconciled })
-            }
-        }),
-        {
-            name: 'file-ui-state',
-            partialize: (state) => ({
-                expanded: state.expanded,
-                selected: state.selected
-            })
+    setSelected: (path) => {
+        get().persist()
+        set({ selected: path })
+    },
+
+    isExpanded: (path) => {
+        return get().expanded[path] || false;
+    },
+
+    toggleExpanded: (path) => {
+        const map = { ...get().expanded };
+        map[path] = !map[path];
+        set({ expanded: map });
+        get().persist()
+    },
+
+    reconcileExpanded: (availablePaths) => {
+        const validPaths = new Set(availablePaths)
+        const reconciled = Object.fromEntries(
+            Object.entries(get().expanded).filter(([path]) => validPaths.has(path))
+        )
+        set({ expanded: reconciled })
+        get().persist()
+    },
+
+    getSelection: (path) => {
+        return get().selection[path] || { from: 1, to: 1 };
+    },
+    setSelection: (path, s) => {
+        const selection = { ...get().selection };
+        selection[path] = s;
+        set({ selection });
+        get().persist()
+    },
+
+    hydrate: async (base) => {
+        const saved = await globalThis.store?.get("fileStore");
+        if (saved && typeof saved === "object") {
+            const state = saved as Partial<FilesStore>;
+            if (state.selected) set({ selected: state.selected });
+            if (state.expanded) set({ expanded: state.expanded });
+            if (state.selection) set({ selection: state.selection });
         }
-    )
-)
 
-// You can now call `loadAndReconcile("/some/path")` on app start.
-// And mount `usePersistedFilesStoreEffects()` in your root layout/component.
+        const files = await loadFilesFromDisk(base)
+        const availablePaths = files.raw.map(f => f.path)
+        set({ files })
+        get().reconcileExpanded(availablePaths)
+    },
+
+    persist: async () => {
+        const { files, selected, expanded, selection } = get();
+        await globalThis.store?.set("fileStore", { selected, expanded, selection });
+        await globalThis.store?.save();
+    }
+}));

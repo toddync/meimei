@@ -20,12 +20,10 @@ import { cn } from "../utils";
 export default function Tree_() {
     const tree = useFilesStore(s => s.files.tree);
 
-    console.log(tree)
-
     return (
         <SidebarMenu className="overflow-auto gap-0 flex-1 max-h-full w-[400px] max-w-[calc(100%_-_40px)]">
             {tree.map((item, index) => (
-                <Tree key={index} path={item.path.replaceAll("//", "/")} children={item.children} />
+                <Tree key={index} path={item.path} children={item.children} />
             ))}
         </SidebarMenu>
     );
@@ -64,11 +62,6 @@ function Tree({ path, children }: { path: string, children: FileNode[] }) {
         );
     }
 
-    useEffect(() => {
-        console.log(expanded, path)
-    }, [expanded])
-
-
     return (
         <SidebarMenu className="gap-0">
             <SidebarMenuItem>
@@ -93,7 +86,7 @@ function Tree({ path, children }: { path: string, children: FileNode[] }) {
                         <AccordionContent className="pl-1">
                             <SidebarMenu className="pl-1 border-l gap-0">
                                 {children.map((item, index) => (
-                                    <Tree key={index} path={item.path.replaceAll("//", "/")} children={item.children} />
+                                    <Tree key={index} path={item.path} children={item.children} />
                                 ))}
                             </SidebarMenu>
                         </AccordionContent>

@@ -1,4 +1,3 @@
-// loadFiles.ts
 import { readDir } from '@tauri-apps/plugin-fs'
 import { FileNode } from './Files'
 
