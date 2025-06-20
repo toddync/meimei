@@ -1,66 +1,66 @@
-//@ts-nocheck
-import Sidebar from "@/components/app-sidebar";
-import {
-  SidebarInset,
-  SidebarProvider
-} from "@/components/ui/sidebar";
-import { Window } from "@tauri-apps/api/window";
+import { invoke } from '@tauri-apps/api/core';
+import * as path from '@tauri-apps/api/path';
+import { configDir } from "@tauri-apps/api/path";
+import { getCurrentWebview } from '@tauri-apps/api/webview';
+import { getAllWebviewWindows } from '@tauri-apps/api/webviewWindow';
 import { exists, mkdir } from '@tauri-apps/plugin-fs';
 import { load } from '@tauri-apps/plugin-store';
 import { useEffect, useState } from "react";
-import Commands from "./lib/components/Commands";
-import Loader from "./lib/components/loader";
-import PageResolver from "./lib/components/page-resolver";
-import { useFilesStore } from "./lib/stores/Files";
-import { useTabStore } from "./lib/stores/tab-store";
-import { useWindowStore } from "./lib/stores/window";
+import WorkspaceManager from './lib/components/workspace-manager';
+import WorkspaceDialog from './lib/components/workspaceDialog';
+import { decodeFilePath, encodeFilePath, useMeimeiStore } from './lib/stores/meimeiStore';
+import Workspace from './Workspace';
 
 export default function Page() {
-  let window: Window = useWindowStore(s => s.window)
-  let setFiles = useFilesStore(s => s.setFiles)
-  const defaultOpen = localStorage.getItem("sidebar:open") === "true"
-
-  let hydrateFiles = useFilesStore(s => s.hydrate)
-  let hydrateTabs = useTabStore(s => s.hydrate)
-
   const [loaded, setLoaded] = useState<boolean>(false)
 
+  const root = useMeimeiStore(s => s.workRoot)
+  const setRoot = useMeimeiStore(s => s.setWorkRoot)
+
+  const setAppStore = useMeimeiStore(s => s.setAppStore)
+  const hydrateMeimei = useMeimeiStore(s => s.hydrate)
+
   useEffect(() => {
-    let root = "/home/danny/vaults/D&D";
-
     (async () => {
-      if (!(await exists(`${root}/.meimei`))) await mkdir(`${root}/.meimei`);
-      globalThis.store = await load(root + "/.meimei/store.json", {
-        autoSave: true
-      })
+      let config = await path.join(await configDir(), "meimei")
+      let storePath = await path.join(config, "store.json");
+      const label = getCurrentWebview().label;
 
-      await hydrateFiles(root)
-      await hydrateTabs()
+      if (!(await exists(config)))
+        await mkdir(config);
+      let store = await load(storePath, { autoSave: true })
+      setAppStore(store)
 
+      setInterval(() => hydrateMeimei(), 500)
+
+      if (label == "main") {
+        let aw = await store.get("activeWorkspaces") as string[];
+        let w = await store.get("workspaces") as string[];
+
+        if (aw.length > 0) {
+          setRoot(aw[0])
+          let windowList = await getAllWebviewWindows();
+          for (let i = 1; i < aw.length; i++) {
+            if (windowList.findIndex(window => window.label == aw[i]) == -1) {
+              await invoke("open_window", { label: encodeFilePath(aw[i]) })
+            }
+          }
+        } else {
+          if (w.length > 0) {
+            setRoot(w[0])
+          }
+        }
+      } else setRoot(decodeFilePath(label))
+
+      await hydrateMeimei()
       setLoaded(true)
     })()
-  })
+  }, [])
 
-
-  return (
-    <main className="overflow-clip h-svh page-h flex flex-col">
-      {loaded ?
-        <SidebarProvider
-          defaultOpen={defaultOpen}
-          style={
-            {
-              "--sidebar-width": "400px",
-            } as React.CSSProperties
-          }
-        >
-          <Commands />
-          <Sidebar />
-          <SidebarInset className="overflow-hidden page-h">
-            <PageResolver />
-          </SidebarInset>
-        </SidebarProvider>
-        : <Loader />
-      }
-    </main>
+  return (loaded && <>
+    <WorkspaceDialog />
+    <WorkspaceManager />
+    {root && <Workspace root={root} />}
+  </>
   )
 }

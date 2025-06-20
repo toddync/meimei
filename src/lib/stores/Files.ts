@@ -1,6 +1,9 @@
 //@ts-nocheck
+import * as path from '@tauri-apps/api/path'
+import { lstat, mkdir, remove, rename, writeTextFile } from '@tauri-apps/plugin-fs'
 import { create } from 'zustand'
-import { loadFilesFromDisk } from './loadFiles'
+import loadFilesFromDisk, { TreeData } from './loadFiles'
+import { useMeimeiStore } from './meimeiStore'
 
 export interface File {
     dir: boolean
@@ -23,18 +26,20 @@ export interface Selection {
 }
 
 interface FilesStore {
-    files: {
-        tree: File[];
-        raw: File[];
-    };
+    files: TreeData;
     selected?: string;
     expanded: Record<string, boolean>;
     selection: Record<string, Selection>;
 
     setFiles: (files: { tree: File[]; raw: File[] }) => void;
+    addFile: (path: string, isDir?: boolean) => Promise<void>;
+    renameFile: (oldPath: string, newPath: string) => Promise<void>;
+    removeFile: (path: string) => Promise<void>;
+    reparentFile: (oldPath: string, newParentDir: string) => Promise<void>;
     setSelected: (path: string) => void;
     isExpanded: (path: string) => boolean;
     toggleExpanded: (path: string) => void;
+    setExpanded: (paths: string[]) => void;
     getSelection: (path: string) => Selection,
     setSelection: (path: string, s: Selection) => void,
 
@@ -43,12 +48,40 @@ interface FilesStore {
 }
 
 export const useFilesStore = create<FilesStore>((set, get) => ({
-    files: { tree: [], raw: [] },
+    files: {},
     selected: undefined,
     expanded: {},
     selection: {},
 
     setFiles: (files) => set({ files }),
+
+    addFile: async (newFilePath: string, isDir: boolean = false) => {
+        if (isDir) {
+            await mkdir(newFilePath, { recursive: true });
+        } else {
+            await writeTextFile(newFilePath, '');
+        }
+        await get().hydrate(useMeimeiStore.getState().workRoot);
+    },
+
+    renameFile: async (oldPath: string, newPath: string) => {
+        await rename(oldPath, newPath);
+        await get().hydrate(useMeimeiStore.getState().workRoot);
+    },
+
+    removeFile: async (targetPath: string) => {
+        const stats = await lstat(targetPath);
+        if (stats.isDirectory()) {
+            await remove(targetPath, { recursive: true, force: true });
+        }
+        await get().hydrate(useMeimeiStore.getState().workRoot);
+    },
+
+    reparentFile: async (oldPath: string, newParentDir: string) => {
+        const name = path.basename(oldPath);
+        const newPath = path.join(newParentDir, name);
+        await get().renameFile(oldPath, newPath);
+    },
 
     setSelected: (path) => {
         get().persist()
@@ -57,6 +90,14 @@ export const useFilesStore = create<FilesStore>((set, get) => ({
 
     isExpanded: (path) => {
         return get().expanded[path] || false;
+    },
+
+    setExpanded: (paths: string[]) => {
+        let map = {}
+
+        paths.map(path => map[path] = true)
+        set({ expanded: map });
+        get().persist()
     },
 
     toggleExpanded: (path) => {
@@ -86,7 +127,8 @@ export const useFilesStore = create<FilesStore>((set, get) => ({
     },
 
     hydrate: async (base) => {
-        const saved = await globalThis.store?.get("fileStore");
+        let store = useMeimeiStore.getState().workspaceStore;
+        const saved = await store?.get("fileStore");
         if (saved && typeof saved === "object") {
             const state = saved as Partial<FilesStore>;
             if (state.selected) set({ selected: state.selected });
@@ -95,14 +137,17 @@ export const useFilesStore = create<FilesStore>((set, get) => ({
         }
 
         const files = await loadFilesFromDisk(base)
-        const availablePaths = files.raw.map(f => f.path)
+        let availablePaths = []
+        Object.keys(files.items).map(k => availablePaths.push(files.items[k].data?.path))
+
         set({ files })
         get().reconcileExpanded(availablePaths)
     },
 
     persist: async () => {
         const { files, selected, expanded, selection } = get();
-        await globalThis.store?.set("fileStore", { selected, expanded, selection });
-        await globalThis.store?.save();
+        let store = useMeimeiStore.getState().workspaceStore;
+        await store?.set("fileStore", { selected, expanded, selection });
+        await store?.save();
     }
 }));

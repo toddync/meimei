@@ -3,29 +3,12 @@ import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu, Sidebar
 import { File } from "lucide-react"
 import { useEffect } from "react"
 import { useFilesStore } from "../stores/Files"
-import Tree from "./file-tree"
 
 export default function Files({ setContent, active }: { active: boolean, setContent?: (a: any) => {} }) {
+    const files = useFilesStore(s => s.setFiles);
     useEffect(() => {
-        setContent?.(Content)
+        // setContent?.(<Content files={files} />)
     }, [active])
-
-    useEffect(() => {
-        const unsubExpanded = useFilesStore.subscribe(
-            s => s.expanded,
-            (expanded) => {
-                localStorage.setItem("file-ui-state", JSON.stringify({
-                    expanded,
-                    selected: useFilesStore.getState().selected
-                }))
-            },
-            { fireImmediately: true }
-        )
-
-        return () => {
-            unsubExpanded()
-        }
-    }, [])
 
     return (
         <SidebarMenuItem >
@@ -40,13 +23,13 @@ export default function Files({ setContent, active }: { active: boolean, setCont
     )
 }
 
-function Content() {
+function Content({ files }) {
     return (
         <SidebarContent>
             <SidebarGroup className="p-5">
                 <SidebarGroupContent>
                     <SidebarMenu>
-                        <Tree />
+                        {files && <FileTree treeData={files} />}
                     </SidebarMenu>
                 </SidebarGroupContent>
             </SidebarGroup>

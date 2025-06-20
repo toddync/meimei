@@ -9,6 +9,8 @@
         "store:default",
         "dialog:default",
 
+        "core:window:allow-start-dragging",
+
         "fs:default",
         "fs:read-all",
         "fs:write-all",
@@ -22,7 +24,7 @@
 
         {
             "identifier": "fs:scope",
-            "allow": [{ "path": "**/*" }, { "path": "**/.*" }]
+            "allow": ["**/*"]
         },
 
         "core:webview:allow-set-webview-size",

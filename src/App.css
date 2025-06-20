@@ -112,7 +112,7 @@
 
 @layer base {
     * {
-        @apply border-border outline-ring/50;
+        @apply border-border outline-ring/50 select-none;
     }
     body {
         @apply bg-background text-foreground min-w-[410px];
@@ -221,4 +221,23 @@ p {
 
 .page-h {
     @apply max-h-[calc(100svh_-_32px)];
+}
+
+.ant-tree-treenode {
+    @apply !flex !w-full;
+}
+.ant-tree-draggable-icon {
+    @apply *:*:fill-primary *:*:stroke-2 min-h-[36px] flex items-center justify-center;
+}
+
+.ant-tree-switcher {
+    @apply flex;
+}
+
+.ant-tree-switcher-noop {
+    max-width: 0px;
+}
+
+.ant-tree-node-content-wrapper {
+    @apply !p-0 !w-full;
 }

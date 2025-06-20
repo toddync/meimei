@@ -8,9 +8,9 @@ import debounce from "lodash.debounce";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import * as Alert from "../editorExt/Alert";
 import { Selection, useFilesStore } from "../stores/Files";
+import { useMeimeiStore } from "../stores/meimeiStore";
 import Loader from "./loader";
 import Title from "./title";
-import { useEditorFocusStore } from "../stores/editor-focus";
 
 interface EditorPageProps {
     file: { path: string; name: string, directory: string, extension: string };
@@ -112,8 +112,7 @@ interface EditorProps {
 }
 
 export function Editor({ content, selection, publishChange, publishSelection }: EditorProps) {
-    const setFocus = useEditorFocusStore(s => s.setFocus)
-    //@ts-ignore
+    const setFocus = useMeimeiStore(s => s.setFocus)
     const editor = useCreateBlockNote({
         schema,
         initialContent: content,
@@ -171,6 +170,7 @@ export function Editor({ content, selection, publishChange, publishSelection }: 
     useEffect(() => {
         setFocus(() => requestAnimationFrame(() => editor.focus()))
         return () => {
+            setFocus(undefined)
             debouncedPublish.cancel();
         };
     }, [debouncedPublish]);
@@ -199,9 +199,7 @@ export function Editor({ content, selection, publishChange, publishSelection }: 
                     triggerCharacter={"/"}
                     getItems={async (query) => {
                         const defaultItems = getDefaultReactSlashMenuItems(editor).filter(i => i.title != "Code Block");
-                        //@ts-ignore
                         const lastBasicBlockIndex = defaultItems.findLastIndex((item) => item.group === "Basic blocks") + 1;
-                        //@ts-ignore
                         blockExts.map((item, i) => defaultItems.splice(lastBasicBlockIndex + i, 0, item.insert(editor)))
                         return filterSuggestionItems(defaultItems, query);
                     }}

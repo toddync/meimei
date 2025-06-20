@@ -8,12 +8,14 @@ import {
 } from "@/components/ui/command"
 import { useEffect, useState } from "react"
 import { useCommandStore } from "../stores/command"
-import { File, useFilesStore } from "../stores/Files"
+import { useFilesStore } from "../stores/Files"
+import { TreeItem } from "../stores/loadFiles"
+import { useMeimeiStore } from "../stores/meimeiStore"
 import { Tab, useTabStore } from "../stores/tab-store"
-import { useEditorFocusStore } from "../stores/editor-focus"
 
 export default function Commands() {
-    const focus = useEditorFocusStore(s => s.focus)
+    const store = useMeimeiStore(s => s.workspaceStore)
+    const focus = useMeimeiStore(s => s.focus)
 
     const open = useCommandStore(s => s.open)
     const toggle = useCommandStore(s => s.toggle)
@@ -28,23 +30,24 @@ export default function Commands() {
     const value = useTabStore(state => state.value)
     const select = useTabStore(state => state.select)
 
-    const [fileList, setFileList] = useState({ tabs: [] as Tab[], files: [] as File[] })
+    const [fileList, setFileList] = useState({ tabs: [] as Tab[], files: [] as TreeItem[] })
 
     useEffect(() => {
         const orderedTabs = history
             .map(h => tabs.find(t => t.value === h))
             .filter((t): t is Tab => t !== undefined)
 
-        const availableFiles = files.raw.filter(file =>
-            tabs.findIndex(tab => tab.value === file.path) === -1
+
+        const availableFiles = Object.entries(files.items).map(([_, file]) =>
+            (tabs.findIndex(tab => tab.value === file.data.path) === -1 && file) || undefined
         )
 
-        setFileList({ tabs: orderedTabs, files: availableFiles })
+        setFileList({ tabs: orderedTabs, files: availableFiles.filter(e => e != undefined) })
     }, [tabs, history, files])
 
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
-            if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+            if (e.key === "k" && (e.metaKey || e.ctrlKey) && store) {
                 e.preventDefault()
                 toggle()
             }
@@ -71,6 +74,7 @@ export default function Commands() {
                                 className={value === tab.value ? "bg-primary/20 data-[selected=true]:bg-primary/40" : ""}
                                 onSelect={() => {
                                     select(tab.value)
+                                    setSelected(tab.value)
                                     toggle()
                                     focus?.()
                                 }}>
@@ -85,19 +89,19 @@ export default function Commands() {
                 {fileList.files.length > 0 && (
                     <CommandGroup heading="Files">
                         {fileList.files.map((file, i) => (
-                            !file.dir && (
+                            !file?.isFolder && (
                                 <CommandItem
                                     key={i}
                                     onSelect={() => {
-                                        addTab({ data: { ...file }, value: file.path, type: "editor" })
-                                        select(file.path)
+                                        addTab({ data: { ...file.data }, value: file.data.path, type: "editor" })
+                                        select(file?.data.path)
                                         //@ts-ignore
                                         setSelected(file)
                                         toggle()
                                         focus?.()
                                     }}>
                                     <span className="whitespace-nowrap overflow-hidden text-ellipsis">
-                                        {file.name}
+                                        {file?.data.name}
                                     </span>
                                 </CommandItem>
                             )

@@ -1,18 +1,37 @@
+import { join, dirname, basename, extname } from '@tauri-apps/api/path'
 import { readDir } from '@tauri-apps/plugin-fs'
-import { FileNode } from './Files'
 
-function parseFilePath(path: string) {
+export interface TreeItem {
+    index?: number
+    canMove?: boolean
+    canRename?: boolean
+    canDelete?: boolean
+    isFolder: boolean
+    children?: string[]
+    data?: any
+    parentId?: string
+}
+
+export interface TreeData {
+    rootId: string
+    items: Record<string, TreeItem>
+}
+
+async function parseFilePath(path: string) {
+    //@ts-ignore
     path = path.replaceAll("//", "/").replaceAll("\\\\", "\\")
-    const pathParts = path.replace(/\\/g, "/").split("/")
-    const filename = pathParts.pop()!
-    const directory = pathParts.join("/") || "/"
-    const extension = filename.includes(".") ? filename.split(".").pop()! : ""
-    const baseName = extension ? filename.slice(0, -extension.length - 1) : filename
+    const directory = await dirname(path)
+    let extension = "";
+    try {
+        extension = await extname(path);
+    } catch (error) {
 
+    }
+    const filename = await basename(path)
+    const baseName = filename.replace(`.${extension}`, "")
     return {
         name: baseName,
         filename,
-        isSelectable: true,
         dir: false,
         directory,
         extension,
@@ -20,37 +39,63 @@ function parseFilePath(path: string) {
     }
 }
 
-export async function loadFilesFromDisk(base: string): Promise<{ tree: FileNode[], raw: File[] }> {
-    const files: { tree: FileNode[], raw: File[] } = { tree: [], raw: [] }
-    let fileRoot = await readDir(base)
-
-    fileRoot = fileRoot.filter(e => !e.name.startsWith("."))
-    fileRoot.sort((a, b) => a.isDirectory && b.isFile ? -1 : 1)
-
-    for (let entry of fileRoot) {
-        files.tree.push(await expand(entry, base))
+export default async function loadFilesForReactComplexTree(base: string): Promise<TreeData> {
+    const treeData: TreeData = {
+        rootId: base,
+        items: {
+            [base]: {
+                isFolder: true,
+                children: [],
+                data: { path: base },
+                canMove: true,
+                canRename: true,
+                canDelete: false,
+            }
+        }
     }
-    return files
 
-    async function expand(entry: any, base: string): Promise<FileNode> {
-        const path = `${base}/${entry.name}`
-        const raw = parseFilePath(path)
+    async function expand(entry: any, parentPath: string): Promise<void> {
+        const path = await join(parentPath, entry.name)
+        const raw = await parseFilePath(path)
 
-        if (entry.isDirectory) raw.dir = true
-        if (entry.isSymlink) raw.link = true
-        if (entry.isFile) raw.file = true
+        const id = path
+        const parentId = parentPath
 
-        files.raw.push(raw)
+        const isFolder = entry.isDirectory
+        // const isFile = entry.isFile
 
-        if (raw.dir) {
+        treeData.items[id] = {
+            isFolder,
+            children: isFolder ? [] : undefined,
+            data: raw,
+            parentId,
+            canMove: true,
+            canRename: true,
+            canDelete: true,
+        }
+
+        if (treeData.items[parentId]?.children) {
+            treeData.items[parentId].children!.push(id)
+        }
+
+        if (isFolder) {
             let childrenEntries = await readDir(path)
             childrenEntries = childrenEntries.filter(e => !e.name.startsWith("."))
             childrenEntries.sort((a, b) => a.isDirectory && b.isFile ? -1 : 1)
 
-            const children = await Promise.all(childrenEntries.map(e => expand(e, path)))
-            return { path, children }
+            for (const child of childrenEntries) {
+                await expand(child, path)
+            }
         }
-
-        return { path }
     }
+
+    const rootEntries = await readDir(base)
+    const filteredEntries = rootEntries.filter(e => !e.name.startsWith("."))
+    const sortedEntries = filteredEntries.sort((a, b) => a.isDirectory && b.isFile ? -1 : 1)
+
+    for (const entry of sortedEntries) {
+        await expand(entry, base)
+    }
+
+    return treeData
 }

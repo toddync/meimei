@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import { useMeimeiStore } from "./meimeiStore"
 
 export type EditorTab = {
     path: string
@@ -69,8 +70,8 @@ export const useTabStore = create<TabStore>()(
 
             if (removedTab.value === value) {
                 newValue = newHistory[0] || ""
-                newSelectedIndex = newTabs.findIndex((t) => t.value === newValue)
             }
+            newSelectedIndex = newTabs.findIndex((t) => t.value === newValue)
 
             set({
                 tabs: newTabs,
@@ -97,8 +98,8 @@ export const useTabStore = create<TabStore>()(
         },
 
         hydrate: async () => {
-            //@ts-ignore
-            const saved = await globalThis.store?.get("tabStore");
+            let store = useMeimeiStore.getState().workspaceStore;
+            const saved = await store?.get("tabStore");
             if (saved && typeof saved === "object") {
                 const state = saved as Partial<TabStore>;
                 if (state.tabs) set({ tabs: state.tabs });
@@ -109,11 +110,10 @@ export const useTabStore = create<TabStore>()(
         },
 
         persist: async () => {
+            let store = useMeimeiStore.getState().workspaceStore;
             const { history, selectedIndex, tabs, value } = get();
-            //@ts-ignore
-            await globalThis.store?.set("tabStore", { history, tabs, value, selectedIndex });
-            //@ts-ignore
-            await globalThis.store?.save();
+            await store?.set("tabStore", { history, tabs, value, selectedIndex });
+            await store?.save();
         }
     })
 )

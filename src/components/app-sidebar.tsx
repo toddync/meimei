@@ -11,6 +11,9 @@ import {
 import Command from "@/lib/components/sidebar-command";
 import Setting from "@/lib/components/sidebar-config";
 import Files from "@/lib/components/sidebar-files";
+import { FileTree } from "@/lib/components/Tree";
+import { useFilesStore } from "@/lib/stores/Files";
+import { useMeimeiStore } from "@/lib/stores/meimeiStore";
 import { ComponentProps, useEffect, useState } from "react";
 
 let items = [
@@ -20,10 +23,23 @@ let items = [
 export default function Sidebar_({ ...props }: ComponentProps<typeof Sidebar>) {
   const { setOpen, open } = useSidebar()
   const [activeIndex, setActiveIndex] = useState(0)
-  const [content, setContent] = useState(null);
+  const [_content, setContent] = useState(null);
+  const files = useFilesStore(s => s.files)
+  let root = useMeimeiStore(s => s.workRoot)
+
+  const setToggleSidebar = useMeimeiStore(s => s.setToggleSidebar)
 
   useEffect(() => {
-    localStorage.setItem("sidebar:open", `${open}`)
+    if (!root && open)
+      setOpen(false)
+    else
+      localStorage.setItem("sidebar:open", `${open}`)
+  }, [open])
+
+  useEffect(() => {
+    setToggleSidebar(() => {
+      setOpen(!open)
+    })
   }, [open])
 
   return (
@@ -63,8 +79,14 @@ export default function Sidebar_({ ...props }: ComponentProps<typeof Sidebar>) {
       </Sidebar>
 
       <Sidebar collapsible="none" className="flex-1 flex m-0">
-        <SidebarContent>
-          {content}
+        <SidebarContent className="w-[calc(400px-3rem)]">
+          <SidebarGroup className="h-full">
+            <SidebarGroupContent className="h-full">
+              <SidebarMenu className="overflow-hidden h-full">
+                <FileTree treeData={files} />
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
         </SidebarContent>
         <SidebarRail />
       </Sidebar>
