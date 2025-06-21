@@ -1,5 +1,12 @@
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuShortcut,
+    ContextMenuTrigger,
+} from "@/components/ui/context-menu"
+import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuSub,
@@ -12,13 +19,14 @@ import { join } from '@tauri-apps/api/path'
 import type { TreeProps } from 'antd'
 import { ConfigProvider, Tree } from 'antd'
 import type { DataNode } from 'antd/es/tree'
-import { ChevronRight, File, FilePlus, Folder, Plus } from 'lucide-react'
+import { ChevronRight, File, FilePlus, Folder, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useFilesStore } from '../stores/Files'
 import { useMeimeiStore } from '../stores/meimeiStore'
 import { useTabStore } from '../stores/tab-store'
 import { cn } from '../utils'
+import FileDialog from './file-dialog'
 
 interface FileTreeProps {
     treeData: {
@@ -33,6 +41,9 @@ export function FileTree({ treeData }: FileTreeProps) {
     const setSelected = useFilesStore(s => s.setSelected);
     const addTab = useTabStore(s => s.add);
     const selectTab = useTabStore(s => s.select);
+
+    const setDialogOpen = useFilesStore(s => s.setDialogOpen)
+    const setDialogContext = useFilesStore(s => s.setDialogContext)
 
     const antTreeData: DataNode[] = convertToAntTree(treeData)?.[0]?.children || []
 
@@ -85,6 +96,7 @@ export function FileTree({ treeData }: FileTreeProps) {
             />
             <FileDropdown />
         </div>
+        <FileDialog />
         <ConfigProvider
             theme={{
                 token: { colorBgContainer: "rgba(0,0,0,0)" },
@@ -135,12 +147,32 @@ export function FileTree({ treeData }: FileTreeProps) {
                             </span>
                         )
                     }
-                    return <div className={cn(buttonVariants({ variant: "ghost" }), 'justify-start min-w-fit w-full hover:bg-primary/10', selected == node.key && "bg-primary/20")}>
-                        <span className='*:text-muted-foreground *:size-4'>
-                            {node.isLeaf ? <File /> : <Folder />}
-                        </span>
-                        <span className="whitespace-nowrap text-foreground">{displayTitle}</span>
-                    </div>
+                    return (
+                        <ContextMenu>
+                            <ContextMenuTrigger>
+                                <div className={cn(buttonVariants({ variant: "ghost" }), 'justify-start min-w-fit w-full hover:bg-primary/10', selected == node.key && "bg-primary/20")}>
+                                    <span className='*:text-muted-foreground *:size-40'>
+                                        {node.isLeaf ? <File /> : <Folder />}
+                                    </span>
+                                    <span className="whitespace-nowrap text-foreground">{displayTitle}</span>
+                                </div>
+                            </ContextMenuTrigger>
+                            <ContextMenuContent>
+                                <ContextMenuItem onSelect={() => {
+                                    setDialogContext({
+                                        action: "delete",
+                                        path: node.key
+                                    })
+                                    setDialogOpen(true)
+                                }}>
+                                    Delete
+                                    <ContextMenuShortcut>
+                                        <Trash2 />
+                                    </ContextMenuShortcut>
+                                </ContextMenuItem>
+                            </ContextMenuContent>
+                        </ContextMenu>
+                    )
                 }}
             />
         </ConfigProvider>
@@ -157,7 +189,7 @@ function convertToAntTree(tree: {
     function buildNode(id: string): DataNode {
         const item = items[id]
         return {
-            title: item.data?.filename || item.data?.name || 'Untitled',
+            title: item.data?.name || 'Untitled',
             key: id,
             isLeaf: !item.isFolder,
             selectable: !item.isFolder,

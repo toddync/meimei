@@ -6,9 +6,6 @@ import { useFilesStore } from "../stores/Files"
 
 export default function Files({ setContent, active }: { active: boolean, setContent?: (a: any) => {} }) {
     const files = useFilesStore(s => s.setFiles);
-    useEffect(() => {
-        // setContent?.(<Content files={files} />)
-    }, [active])
 
     return (
         <SidebarMenuItem >

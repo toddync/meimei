@@ -17,7 +17,13 @@ export type Tab = {
 interface TabStore {
     tabs: Tab[]
     add: (tab: Tab) => void
+    update: (value: string, data: EditorTab) => void
+
+    get: (value: string) => Tab
+    getByPath: (path: string) => Tab | undefined
+
     remove: (index: number) => void
+    removeByPath: (path: string) => void
 
     value: string
     selectedIndex: number
@@ -81,6 +87,36 @@ export const useTabStore = create<TabStore>()(
             })
 
             get().persist()
+        },
+
+        update: (value: string, data: EditorTab) => {
+            let { tabs } = get()
+            let i = tabs.findIndex(t => t.value == value);
+
+            if (i >= 0) {
+                tabs[i].data = data;
+                set({ tabs: [...tabs] })
+            }
+        },
+
+        get: (value: string) => {
+            let { tabs } = get()
+            let i = tabs.findIndex(t => t.value == value);
+            return tabs[i]
+        },
+
+        getByPath: (path: string) => {
+            let { tabs } = get()
+            let i = tabs.findIndex(t => t.data.path == path);
+            return i >= 0 ? tabs[i] : undefined
+        },
+
+        removeByPath: (path: string) => {
+            const { tabs, remove } = get();
+            const index = tabs.findIndex(t => t.data.path === path);
+            if (index !== -1) {
+                remove(index);
+            }
         },
 
         select: (value: string) => {

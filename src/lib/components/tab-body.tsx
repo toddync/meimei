@@ -7,7 +7,7 @@ export default function TabBody({ tab }: { tab: Tab }) {
         <TabPanel value={tab.value} sx={{
             overflow: "hidden"
         }} className="TabBody">
-            {tab.type == "editor" && <EditorPage file={tab.data} />}
+            {tab.type == "editor" && <EditorPage file={tab.data} tab={tab} />}
         </TabPanel>
     )
 }

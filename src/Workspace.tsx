@@ -15,11 +15,16 @@ import { useFilesStore } from "./lib/stores/Files";
 import { useTabStore } from "./lib/stores/tab-store";
 import { useWindowStore } from "./lib/stores/window";
 import { useMeimeiStore } from "./lib/stores/meimeiStore";
+import { join } from "@tauri-apps/api/path";
 
 export default function Workspace({ root }: { root?: string }) {
     let window: Window = useWindowStore(s => s.window)
     let setFiles = useFilesStore(s => s.setFiles)
-    const defaultOpen = localStorage.getItem("sidebar:open") === "true"
+    const defaultOpen = (() => {
+        let val = localStorage.getItem("sidebar:open")
+        if (val) return val == "true"
+        else return true
+    })()
 
     const setWorkspaceStore = useMeimeiStore(s => s.setWorkspaceStore)
 
@@ -31,9 +36,10 @@ export default function Workspace({ root }: { root?: string }) {
     useEffect(() => {
         (async () => {
             if (root) {
-                if (!(await exists(`${root}/.meimei`))) await mkdir(`${root}/.meimei`);
+                let storePath = await join(root, ".meimei")
+                if (!(await exists(storePath))) await mkdir(storePath);
                 setWorkspaceStore(
-                    await load(root + "/.meimei/store.json", {
+                    await load(await join(storePath, "store.json"), {
                         autoSave: true
                     })
                 )

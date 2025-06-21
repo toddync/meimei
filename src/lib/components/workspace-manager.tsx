@@ -128,7 +128,7 @@ function Content({ setPage }: { setPage: (i: number) => void }) {
                     </SelectTrigger>
                     <SelectContent>
                         {workspaces.map(w =>
-                            <SelectItem value={w}>{w.split("/").pop()}</SelectItem>
+                            <SelectItem value={w}>{w.split(sep()).pop()}</SelectItem>
                         )}
                     </SelectContent>
                 </Select>

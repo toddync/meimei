@@ -3,24 +3,30 @@ import { BlockNoteSchema, defaultBlockSpecs, filterSuggestionItems } from "@bloc
 import { BlockNoteView } from "@blocknote/mantine";
 import { blockTypeSelectItems, FormattingToolbar, FormattingToolbarController, getDefaultReactSlashMenuItems, SuggestionMenuController, useCreateBlockNote } from "@blocknote/react";
 import { MantineProvider } from "@mantine/core";
+import { join } from "@tauri-apps/api/path";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import debounce from "lodash.debounce";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import * as Alert from "../editorExt/Alert";
 import { Selection, useFilesStore } from "../stores/Files";
 import { useMeimeiStore } from "../stores/meimeiStore";
+import { Tab } from "../stores/tab-store";
 import Loader from "./loader";
 import Title from "./title";
 
 interface EditorPageProps {
-    file: { path: string; name: string, directory: string, extension: string };
+    file: { path: string; name: string, directory: string, extension: string }
+    tab: Tab
 }
 
-export function EditorPage({ file }: EditorPageProps) {
+export function EditorPage({ file, tab }: EditorPageProps) {
     const editor = useCreateBlockNote();
     const [content, setContent] = useState<string>("");
     const [title, setTitle] = useState<string>(file.name);
     const [editorContent, setEditorContent] = useState<any>(null);
+
+    const [error, setError] = useState<boolean>(false)
 
     let setSelection = useFilesStore(s => s.setSelection)
     let getSelection = useFilesStore(s => s.getSelection)
@@ -44,11 +50,12 @@ export function EditorPage({ file }: EditorPageProps) {
         setSelection(file.path, s)
     }, [file.path])
 
-    async function renameFile(name: string) {
-        console.log(file.directory + name + "." + file.extension);
-        setTitle(name);
-        // await rename(file.path, file.directory + name);
-    }
+    const renameFile = debounce(async (name: string) => {
+        const newPath = await join(file.directory, `${name}.md`)
+
+        if (file.path == newPath) setError(false)
+        else setError(!(await useFilesStore.getState().renameFile(file.path, newPath, tab.value)))
+    }, 300)
 
     useEffect(() => {
         let cancelled = false;
@@ -79,7 +86,12 @@ export function EditorPage({ file }: EditorPageProps) {
         <div className="flex flex-1 flex-col p-5 pt-10 overflow-scroll" id="editorDiv">
             {editorContent ?
                 <>
-                    <Title value={title} onChange={renameFile} />
+                    <Title value={title} error={error} onChange={(e) => {
+                        if (e) {
+                            renameFile(e)
+                            setTitle(e)
+                        } else toast.error("Invalid title", { description: "File can't have an empty title" })
+                    }} />
                     <Editor
                         selection={selection}
                         content={editorContent}

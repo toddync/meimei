@@ -7,12 +7,12 @@ import Tabs from '@mui/material/Tabs';
 import { X } from "lucide-react";
 import { useEffect } from "react";
 import blooming from '../../assets/blooming.svg';
+import { useCommandStore } from "../stores/command";
 import { useFilesStore } from "../stores/Files";
 import { useMeimeiStore } from "../stores/meimeiStore";
 import { useTabStore } from "../stores/tab-store";
 import scrollButtons from './scrollButtons';
 import TabBody from "./tab-body";
-import { useCommandStore } from "../stores/command";
 
 export default function PageResolver() {
     const tabs = useTabStore(state => state.tabs)
@@ -106,7 +106,6 @@ export default function PageResolver() {
                 >
                     {tabs.map((tab, i) => (
                         <div
-                            key={tab.value}
                             className={cn(
                                 buttonVariants({ variant: "outline" }),
                                 "group relative max-w-56 min-w-24 px-1.5 border-b-0 rounded-b-none transition-none",
@@ -137,3 +136,31 @@ export default function PageResolver() {
         </TabContext>
     );
 }
+
+// function TabHead({ i, tab, value, select, remove }: { i: number, tab: Tab_, value: string, select: (s: string) => void, remove: (i: number) => void }) {
+//     return (
+//         <div
+//             className={cn(
+//                 buttonVariants({ variant: "outline" }),
+//                 "group relative max-w-56 min-w-24 px-1.5 border-b-0 rounded-b-none transition-none",
+//                 value == tab.value && "bg-background dark:bg-background h-10",
+//                 value != tab.value && "bg-accent dark:bg-sidebar h-[39px]"
+//             )}
+//         >
+//             <Tab value={tab.value} disableRipple className="Tab" />
+//             <button onClick={() => select(tab.value)} className="absolute size-full z-10 opacity-0" />
+//             <span className="overflow-hidden whitespace-nowrap text-ellipsis flex-1 text-center">
+//                 {tab.data.name}
+//             </span>
+
+//             <Button
+//                 size="icon"
+//                 variant="ghost"
+//                 onClick={() => { remove(i) }}
+//                 className="size-fit p-0.5 my-auto z-20"
+//             >
+//                 <X className="text-muted-foreground group-hover:text-red-600 transition-colors" />
+//             </Button>
+//         </div>
+//     )
+// }

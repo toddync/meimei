@@ -13,6 +13,8 @@ import { TreeItem } from "../stores/loadFiles"
 import { useMeimeiStore } from "../stores/meimeiStore"
 import { Tab, useTabStore } from "../stores/tab-store"
 
+import { v4 as uuidv4 } from "uuid"
+
 export default function Commands() {
     const store = useMeimeiStore(s => s.workspaceStore)
     const focus = useMeimeiStore(s => s.focus)
@@ -36,7 +38,6 @@ export default function Commands() {
         const orderedTabs = history
             .map(h => tabs.find(t => t.value === h))
             .filter((t): t is Tab => t !== undefined)
-
 
         const availableFiles = Object.entries(files.items).map(([_, file]) =>
             (tabs.findIndex(tab => tab.value === file.data.path) === -1 && file) || undefined
@@ -93,7 +94,7 @@ export default function Commands() {
                                 <CommandItem
                                     key={i}
                                     onSelect={() => {
-                                        addTab({ data: { ...file.data }, value: file.data.path, type: "editor" })
+                                        addTab({ data: { ...file.data }, value: uuidv4(), type: "editor" })
                                         select(file?.data.path)
                                         //@ts-ignore
                                         setSelected(file)

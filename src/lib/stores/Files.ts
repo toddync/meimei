@@ -1,9 +1,11 @@
 //@ts-nocheck
 import * as path from '@tauri-apps/api/path'
-import { lstat, mkdir, remove, rename, writeTextFile } from '@tauri-apps/plugin-fs'
+import { exists, lstat, mkdir, remove, rename, writeTextFile } from '@tauri-apps/plugin-fs'
 import { create } from 'zustand'
 import loadFilesFromDisk, { TreeData } from './loadFiles'
 import { useMeimeiStore } from './meimeiStore'
+import { useTabStore } from './tab-store'
+import { toast } from 'sonner'
 
 export interface File {
     dir: boolean
@@ -31,9 +33,14 @@ interface FilesStore {
     expanded: Record<string, boolean>;
     selection: Record<string, Selection>;
 
+    dialogOpen: boolean
+    dialogContext: any
+    setDialogOpen: (v: boolean) => void
+    setDialogContext: (v: any) => void
+
     setFiles: (files: { tree: File[]; raw: File[] }) => void;
     addFile: (path: string, isDir?: boolean) => Promise<void>;
-    renameFile: (oldPath: string, newPath: string) => Promise<void>;
+    renameFile: (oldPath: string, newPath: string) => Promise<boolean>;
     removeFile: (path: string) => Promise<void>;
     reparentFile: (oldPath: string, newParentDir: string) => Promise<void>;
     setSelected: (path: string) => void;
@@ -53,34 +60,84 @@ export const useFilesStore = create<FilesStore>((set, get) => ({
     expanded: {},
     selection: {},
 
-    setFiles: (files) => set({ files }),
+    dialogOpen: false,
+    dialogContext: {},
+    setDialogOpen: (dialogOpen) => set({ dialogOpen }),
+    setDialogContext: (dialogContext) => set({ dialogContext }),
 
-    addFile: async (newFilePath: string, isDir: boolean = false) => {
-        if (isDir) {
-            await mkdir(newFilePath, { recursive: true });
-        } else {
-            await writeTextFile(newFilePath, '');
+    setFiles: (files) => set({ files }),
+    renameFile: async (oldPath: string, newPath: string, value?: string) => {
+        if (await exists(newPath)) return (toast.error("Duplicate name", { description: "A file with the same name already exists on this folder" }), false)
+        await rename(oldPath, newPath);
+
+        if (value) {
+            let { data } = useTabStore.getState().get(value)
+            useTabStore.getState().update(value, { ...data, path: newPath, name: (await path.basename(newPath)).replace(".md", "") })
         }
+
         await get().hydrate(useMeimeiStore.getState().workRoot);
+        return true
     },
 
-    renameFile: async (oldPath: string, newPath: string) => {
-        await rename(oldPath, newPath);
-        await get().hydrate(useMeimeiStore.getState().workRoot);
+    addFile: async (newFilePath: string, isDir: boolean = false) => {
+        try {
+            const fileExists = await exists(newFilePath);
+            if (fileExists) {
+                toast.error("File already exists", { description: newFilePath });
+                return;
+            }
+
+            if (isDir) {
+                await mkdir(newFilePath, { recursive: true });
+            } else {
+                await writeTextFile(newFilePath, '');
+            }
+
+            await get().hydrate(useMeimeiStore.getState().workRoot);
+            toast.success("File added", { description: newFilePath });
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to add file", { description: String(err) });
+        }
     },
 
     removeFile: async (targetPath: string) => {
-        const stats = await lstat(targetPath);
-        if (stats.isDirectory()) {
-            await remove(targetPath, { recursive: true, force: true });
+        try {
+            const stats = await lstat(targetPath);
+            await remove(targetPath, {
+                recursive: stats.isDirectory,
+                force: true
+            });
+
+            useTabStore.getState().removeByPath(targetPath)
+
+            await get().hydrate(useMeimeiStore.getState().workRoot);
+            toast.success("File removed");
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to remove file", { description: String(err) });
         }
-        await get().hydrate(useMeimeiStore.getState().workRoot);
     },
 
     reparentFile: async (oldPath: string, newParentDir: string) => {
-        const name = path.basename(oldPath);
-        const newPath = path.join(newParentDir, name);
-        await get().renameFile(oldPath, newPath);
+        try {
+            const name = await path.basename(oldPath);
+            const newPath = await path.join(newParentDir, name);
+
+            const success = await get().renameFile(oldPath, newPath);
+
+            let tab = useTabStore.getState().getByPath(newPath)
+            if (tab) {
+                useTabStore.getState().update(tab.value, { ...data, path: newPath, name: (await path.basename(newPath)).replace(".md", "") })
+            }
+
+            if (!success) {
+                throw new Error()
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to move file", { description: String(err) });
+        }
     },
 
     setSelected: (path) => {

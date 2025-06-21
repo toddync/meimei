@@ -1,6 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
 import * as path from '@tauri-apps/api/path';
-import { configDir } from "@tauri-apps/api/path";
 import { getCurrentWebview } from '@tauri-apps/api/webview';
 import { getAllWebviewWindows } from '@tauri-apps/api/webviewWindow';
 import { exists, mkdir } from '@tauri-apps/plugin-fs';
@@ -22,7 +21,8 @@ export default function Page() {
 
   useEffect(() => {
     (async () => {
-      let config = await path.join(await configDir(), "meimei")
+      let config = await path.appConfigDir()
+      console.log(config)
       let storePath = await path.join(config, "store.json");
       const label = getCurrentWebview().label;
 
