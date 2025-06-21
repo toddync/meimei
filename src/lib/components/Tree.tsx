@@ -15,7 +15,8 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { Input } from '@/components/ui/input'
-import { join } from '@tauri-apps/api/path'
+import { dirname, join } from '@tauri-apps/api/path'
+import { lstat } from '@tauri-apps/plugin-fs'
 import type { TreeProps } from 'antd'
 import { ConfigProvider, Tree } from 'antd'
 import type { DataNode } from 'antd/es/tree'
@@ -81,6 +82,12 @@ export function FileTree({ treeData }: FileTreeProps) {
 
         console.log("Dragged:", dragKey)
         console.log("Dropped on:", dropKey)
+
+            ; (async () => {
+                let dropInfo = await lstat(dropKey)
+                if (!dropInfo.isDirectory) useFilesStore.getState().reparentFile(dragKey, await dirname(dropKey))
+                else useFilesStore.getState().reparentFile(dragKey, dropKey)
+            })()
     }
 
     useEffect(() => {
@@ -109,7 +116,7 @@ export function FileTree({ treeData }: FileTreeProps) {
             }}>
             <Tree
                 className='overflow-auto h-full'
-                // draggable
+                draggable
                 onDrop={handleDrop}
                 onSelect={onSelect}
                 treeData={antTreeData}

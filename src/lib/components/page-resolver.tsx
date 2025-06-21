@@ -114,7 +114,11 @@ export default function PageResolver() {
                             )}
                         >
                             <Tab value={tab.value} disableRipple className="Tab" />
-                            <button onClick={() => select(tab.value)} className="absolute size-full z-10 opacity-0" />
+                            <button onClick={() => {
+                                select(tab.value)
+                                setSelected(tab.data.path)
+                                console.log(tab.data.path)
+                            }} className="absolute size-full z-10 opacity-0" />
                             <span className="overflow-hidden whitespace-nowrap text-ellipsis flex-1 text-center">
                                 {tab.data.name}
                             </span>

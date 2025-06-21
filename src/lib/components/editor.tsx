@@ -37,13 +37,13 @@ export function EditorPage({ file, tab }: EditorPageProps) {
         async (markdown: string) => {
             if (markdown !== content) {
                 try {
-                    await writeTextFile(file.path, markdown);
+                    await writeTextFile(tab.data.path, markdown);
                 } catch (err) {
                     console.error("Failed to write file:", err);
                 }
             }
         },
-        [file.path, content]
+        [file.path, file, content]
     );
 
     const publishSelection = useCallback(async (s: Selection) => {
@@ -55,7 +55,7 @@ export function EditorPage({ file, tab }: EditorPageProps) {
 
         if (file.path == newPath) setError(false)
         else setError(!(await useFilesStore.getState().renameFile(file.path, newPath, tab.value)))
-    }, 300)
+    }, 500)
 
     useEffect(() => {
         let cancelled = false;

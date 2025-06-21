@@ -11,6 +11,8 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <Toaster richColors theme="dark" position="bottom-center" />
     <Menubar />
-    <App />
+    <div className="relative pt-8">
+      <App />
+    </div>
   </React.StrictMode>,
 );

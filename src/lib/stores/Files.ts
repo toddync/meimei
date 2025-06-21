@@ -124,16 +124,20 @@ export const useFilesStore = create<FilesStore>((set, get) => ({
             const name = await path.basename(oldPath);
             const newPath = await path.join(newParentDir, name);
 
+            if (oldPath == newPath) return;
+
             const success = await get().renameFile(oldPath, newPath);
+            if (!success) throw new Error()
 
-            let tab = useTabStore.getState().getByPath(newPath)
+            let tab = useTabStore.getState().getByPath(oldPath)
             if (tab) {
-                useTabStore.getState().update(tab.value, { ...data, path: newPath, name: (await path.basename(newPath)).replace(".md", "") })
+                useTabStore.getState().update(tab.value, { ...tab.data, path: newPath, directory: newParentDir, name: (await path.basename(newPath)).replace(".md", "") })
             }
 
-            if (!success) {
-                throw new Error()
-            }
+            toast.success("File moved")
+            await get().hydrate(useMeimeiStore.getState().workRoot)
+            if (get().selected == oldPath) set({ selected: newPath })
+
         } catch (err) {
             console.error(err);
             toast.error("Failed to move file", { description: String(err) });

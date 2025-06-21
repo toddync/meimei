@@ -44,12 +44,13 @@ export const useTabStore = create<TabStore>()(
 
         add: (tab: Tab) => {
             let state = get();
-            if (state.tabs.find((t) => t.value === tab.value)) {
-                return {
-                    value: tab.value,
-                    selectedIndex: state.tabs.findIndex((t) => t.value === tab.value),
-                    history: [tab.value, ...state.history.filter((v) => v !== tab.value)],
-                }
+            let t_ = state.tabs.find((t) => t.data.path === tab.data.path)
+            if (t_) {
+                return set({
+                    value: t_.value,
+                    selectedIndex: state.tabs.findIndex((t) => t.value === t_.value),
+                    history: [t_.value, ...state.history.filter((v) => v !== t_.value)],
+                })
             }
 
             set({

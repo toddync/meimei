@@ -56,7 +56,7 @@ export default function WorkspaceManager() {
     }, [api])
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={setOpen} modal>
             <DialogContent className="flex flex-col gap-6 focus:outline-none">
                 <div className="text-center space-y-2">
                     <Icon iconNode={flowerLotus} className="mx-auto size-10 stroke-primary stroke-[0.6]" />
