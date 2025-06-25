@@ -89,18 +89,24 @@ function TabContents() {
     const [api, setApi] = useState<CarouselApi>()
 
     useEffect(() => {
-        (async () => {
-            api?.reInit()
-            api?.scrollTo(selectedIndex)
-        })()
-    }, [api, tabs, selectedIndex])
+        api?.reInit()
+        api?.scrollTo(selectedIndex)
 
+        setTimeout(() => {
+            const currentSlide = document.querySelector(`[data-carousel-index="${selectedIndex}"]`);
+            if (currentSlide) { //@ts-ignore
+                currentSlide.style.display = 'none'; //@ts-ignore
+                void currentSlide.offsetHeight; //@ts-ignore
+                currentSlide.style.display = '';
+            }
+        }, 50);
+    }, [api, selectedIndex])
 
     return (
-        <Carousel className="max-h-full min-h-full grid" setApi={setApi} opts={{ watchDrag: false }}>
+        <Carousel className="max-h-full min-h-full grid" setApi={setApi} opts={{ watchDrag: false, dragFree: false, startIndex: useTabStore.getState().selectedIndex }}>
             <CarouselContent className="min-h-full max-h-full">
-                {tabs.map((tab) =>
-                    <CarouselItem className="min-h-full max-h-full overflow-auto" key={tab.value}>
+                {tabs.map((tab, i) =>
+                    <CarouselItem className="min-h-full max-h-full" data-carousel-index={i} key={tab.value}>
                         <TabBody tab={tab} />
                     </CarouselItem>
                 )}
