@@ -2,7 +2,7 @@
 import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
 import { File } from "lucide-react"
 import { useEffect } from "react"
-import { useFilesStore } from "../stores/Files"
+import { useFilesStore } from "../stores/files"
 
 export default function Files({ setContent, active }: { active: boolean, setContent?: (a: any) => {} }) {
     const files = useFilesStore(s => s.setFiles);

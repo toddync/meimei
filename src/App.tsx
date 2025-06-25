@@ -2,12 +2,12 @@ import { invoke } from '@tauri-apps/api/core';
 import * as path from '@tauri-apps/api/path';
 import { getCurrentWebview } from '@tauri-apps/api/webview';
 import { getAllWebviewWindows } from '@tauri-apps/api/webviewWindow';
-import { exists, mkdir } from '@tauri-apps/plugin-fs';
+import { exists } from '@tauri-apps/plugin-fs';
 import { load } from '@tauri-apps/plugin-store';
 import { useEffect, useState } from "react";
 import WorkspaceManager from './lib/components/workspace-manager';
-import WorkspaceDialog from './lib/components/workspaceDialog';
-import { decodeFilePath, encodeFilePath, useMeimeiStore } from './lib/stores/meimeiStore';
+import WorkspaceDialog from './lib/components/workspace-dialog';
+import { decodeFilePath, encodeFilePath, useMeimeiStore } from './lib/stores/meimei';
 import Workspace from './Workspace';
 
 export default function Page() {
@@ -22,20 +22,18 @@ export default function Page() {
   useEffect(() => {
     (async () => {
       let config = await path.appConfigDir()
-      console.log(config)
       let storePath = await path.join(config, "store.json");
       const label = getCurrentWebview().label;
 
-      if (!(await exists(config)))
-        await mkdir(config);
       let store = await load(storePath, { autoSave: true })
-      setAppStore(store)
+      if (!(await exists(config))) await store.save();
 
+      setAppStore(store)
       setInterval(() => hydrateMeimei(), 500)
 
       if (label == "main") {
-        let aw = await store.get("activeWorkspaces") as string[];
-        let w = await store.get("workspaces") as string[];
+        let aw = await store.get("activeWorkspaces") as string[] || [];
+        let w = await store.get("workspaces") as string[] || [];
 
         if (aw.length > 0) {
           setRoot(aw[0])

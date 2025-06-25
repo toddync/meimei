@@ -8,13 +8,13 @@ import { Window } from "@tauri-apps/api/window";
 import { exists, mkdir } from '@tauri-apps/plugin-fs';
 import { load } from '@tauri-apps/plugin-store';
 import { useEffect, useState } from "react";
-import Commands from "./lib/components/Commands";
+import Commands from "./lib/components/commands";
 import Loader from "./lib/components/loader";
 import PageResolver from "./lib/components/page-resolver";
-import { useFilesStore } from "./lib/stores/Files";
-import { useTabStore } from "./lib/stores/tab-store";
+import { useFilesStore } from "./lib/stores/files";
+import { useTabStore } from "./lib/stores/tabs";
 import { useWindowStore } from "./lib/stores/window";
-import { useMeimeiStore } from "./lib/stores/meimeiStore";
+import { useMeimeiStore } from "./lib/stores/meimei";
 import { join } from "@tauri-apps/api/path";
 
 export default function Workspace({ root }: { root?: string }) {
@@ -43,7 +43,6 @@ export default function Workspace({ root }: { root?: string }) {
                         autoSave: true
                     })
                 )
-
                 await hydrateFiles(root)
                 await hydrateTabs()
             }

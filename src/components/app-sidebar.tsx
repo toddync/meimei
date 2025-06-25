@@ -11,9 +11,9 @@ import {
 import Command from "@/lib/components/sidebar-command";
 import Setting from "@/lib/components/sidebar-config";
 import Files from "@/lib/components/sidebar-files";
-import { FileTree } from "@/lib/components/Tree";
-import { useFilesStore } from "@/lib/stores/Files";
-import { useMeimeiStore } from "@/lib/stores/meimeiStore";
+import { FileTree } from "@/lib/components/tree";
+import { useFilesStore } from "@/lib/stores/files";
+import { useMeimeiStore } from "@/lib/stores/meimei";
 import { ComponentProps, useEffect, useState } from "react";
 
 let items = [
