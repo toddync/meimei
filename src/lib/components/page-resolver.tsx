@@ -89,7 +89,7 @@ function TabContents() {
     const [api, setApi] = useState<CarouselApi>()
 
     useEffect(() => {
-        api?.reInit()
+        api?.scrollSnapList().length != tabs.length && api?.reInit();
         api?.scrollTo(selectedIndex)
 
         setTimeout(() => {
@@ -103,7 +103,7 @@ function TabContents() {
     }, [api, selectedIndex])
 
     return (
-        <Carousel className="max-h-full min-h-full grid" setApi={setApi} opts={{ watchDrag: false, dragFree: false, startIndex: useTabStore.getState().selectedIndex }}>
+        <Carousel className="max-h-full min-h-full grid" setApi={setApi} opts={{ watchDrag: false, dragFree: false }}>
             <CarouselContent className="min-h-full max-h-full">
                 {tabs.map((tab, i) =>
                     <CarouselItem className="min-h-full max-h-full" data-carousel-index={i} key={tab.value}>

@@ -78,16 +78,13 @@ export function FileTree({ treeData }: FileTreeProps) {
 
     const handleDrop: TreeProps['onDrop'] = info => {
         const dragKey = info.dragNode.key as string
-        const dropKey = info.node.key as string
+        const dropKey = info.node.key as string;
 
-        console.log("Dragged:", dragKey)
-        console.log("Dropped on:", dropKey)
-
-            ; (async () => {
-                let dropInfo = await lstat(dropKey)
-                if (!dropInfo.isDirectory) useFilesStore.getState().reparentFile(dragKey, await dirname(dropKey))
-                else useFilesStore.getState().reparentFile(dragKey, dropKey)
-            })()
+        (async () => {
+            let dropInfo = await lstat(dropKey)
+            if (!dropInfo.isDirectory) useFilesStore.getState().reparentFile(dragKey, await dirname(dropKey))
+            else useFilesStore.getState().reparentFile(dragKey, dropKey)
+        })()
     }
 
     useEffect(() => {
