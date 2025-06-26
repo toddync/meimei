@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { useMeimeiStore } from "./meimeiStore"
+import { useMeimeiStore } from "./meimei"
 
 export type EditorTab = {
     path: string
@@ -11,15 +11,16 @@ export type EditorTab = {
 export type Tab = {
     value: string
     type: "editor" | ""
-    data: EditorTab
 }
 
 interface TabStore {
     tabs: Tab[]
-    add: (tab: Tab) => void
+    TabDataMap: Record<string, EditorTab>
+    add: (tab: Tab, data: EditorTab) => void
     update: (value: string, data: EditorTab) => void
 
     get: (value: string) => Tab
+    getData: (k: string) => EditorTab
     getByPath: (path: string) => Tab | undefined
 
     remove: (index: number) => void
@@ -42,9 +43,12 @@ export const useTabStore = create<TabStore>()(
         selectedIndex: 0,
         history: [],
 
-        add: (tab: Tab) => {
+        TabDataMap: {},
+        getData: (k) => get().TabDataMap[k],
+
+        add: (tab: Tab, data: EditorTab) => {
             let state = get();
-            let t_ = state.tabs.find((t) => t.data.path === tab.data.path)
+            let t_ = state.tabs.find(t => state.TabDataMap[t.value].path == data.path)
             if (t_) {
                 return set({
                     value: t_.value,
@@ -55,6 +59,7 @@ export const useTabStore = create<TabStore>()(
 
             set({
                 tabs: [...state.tabs, tab],
+                TabDataMap: { ...state.TabDataMap, [tab.value]: data },
                 value: tab.value,
                 selectedIndex: state.tabs.length,
                 history: [tab.value, ...state.history],
@@ -91,13 +96,8 @@ export const useTabStore = create<TabStore>()(
         },
 
         update: (value: string, data: EditorTab) => {
-            let { tabs } = get()
-            let i = tabs.findIndex(t => t.value == value);
-
-            if (i >= 0) {
-                tabs[i].data = data;
-                set({ tabs: [...tabs] })
-            }
+            let { TabDataMap } = get()
+            set({ TabDataMap: { ...TabDataMap, [value]: data } })
         },
 
         get: (value: string) => {
@@ -107,14 +107,14 @@ export const useTabStore = create<TabStore>()(
         },
 
         getByPath: (path: string) => {
-            let { tabs } = get()
-            let i = tabs.findIndex(t => t.data.path == path);
+            let { tabs, TabDataMap } = get()
+            let i = tabs.findIndex(t => TabDataMap[t.value].path == path);
             return i >= 0 ? tabs[i] : undefined
         },
 
         removeByPath: (path: string) => {
-            const { tabs, remove } = get();
-            const index = tabs.findIndex(t => t.data.path === path);
+            const { tabs, remove, TabDataMap } = get();
+            const index = tabs.findIndex(t => TabDataMap[t.value].path == path);
             if (index !== -1) {
                 remove(index);
             }
@@ -142,14 +142,15 @@ export const useTabStore = create<TabStore>()(
                 if (state.tabs) set({ tabs: state.tabs });
                 if (state.value) set({ value: state.value });
                 if (state.history) set({ history: state.history });
+                if (state.TabDataMap) set({ TabDataMap: state.TabDataMap });
                 if (state.selectedIndex) set({ selectedIndex: state.selectedIndex });
             }
         },
 
         persist: async () => {
             let store = useMeimeiStore.getState().workspaceStore;
-            const { history, selectedIndex, tabs, value } = get();
-            await store?.set("tabStore", { history, tabs, value, selectedIndex });
+            const { history, selectedIndex, tabs, value, TabDataMap } = get();
+            await store?.set("tabStore", { history, tabs, value, selectedIndex, TabDataMap });
             await store?.save();
         }
     })

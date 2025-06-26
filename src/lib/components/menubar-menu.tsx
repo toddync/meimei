@@ -10,7 +10,7 @@ import {
     MenubarTrigger
 } from "@/components/ui/menubar"
 import { sep } from "@tauri-apps/api/path"
-import { useMeimeiStore } from "../stores/meimeiStore"
+import { useMeimeiStore } from "../stores/meimei"
 
 export default function MenubarMenu_() {
     let root = useMeimeiStore(s => s.workRoot)

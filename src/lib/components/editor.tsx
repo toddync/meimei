@@ -9,9 +9,9 @@ import debounce from "lodash.debounce";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import * as Alert from "../editorExt/Alert";
-import { Selection, useFilesStore } from "../stores/Files";
-import { useMeimeiStore } from "../stores/meimeiStore";
-import { Tab } from "../stores/tab-store";
+import { Selection, useFilesStore } from "../stores/files";
+import { useMeimeiStore } from "../stores/meimei";
+import { Tab } from "../stores/tabs";
 import Loader from "./loader";
 import Title from "./title";
 

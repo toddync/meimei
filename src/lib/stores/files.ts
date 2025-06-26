@@ -3,8 +3,8 @@ import * as path from '@tauri-apps/api/path'
 import { exists, lstat, mkdir, remove, rename, writeTextFile } from '@tauri-apps/plugin-fs'
 import { create } from 'zustand'
 import loadFilesFromDisk, { TreeData } from './loadFiles'
-import { useMeimeiStore } from './meimeiStore'
-import { useTabStore } from './tab-store'
+import { useMeimeiStore } from './meimei'
+import { useTabStore } from './tabs'
 import { toast } from 'sonner'
 
 export interface File {

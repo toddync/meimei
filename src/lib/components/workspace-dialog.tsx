@@ -24,7 +24,7 @@ import { join, sep, } from "@tauri-apps/api/path"
 import { open } from '@tauri-apps/plugin-dialog'
 import { FolderOpen, Icon, Plus } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useMeimeiStore } from "../stores/meimeiStore"
+import { useMeimeiStore } from "../stores/meimei"
 import { toast } from "sonner"
 import { mkdir } from "@tauri-apps/plugin-fs"
 

@@ -35,7 +35,7 @@ import { mkdir } from "@tauri-apps/plugin-fs"
 import { FolderOpen, Icon, Plus, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { useMeimeiStore } from "../stores/meimeiStore"
+import { useMeimeiStore } from "../stores/meimei"
 
 export default function WorkspaceManager() {
     let open = useMeimeiStore(s => s.showManager)

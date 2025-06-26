@@ -23,9 +23,9 @@ import type { DataNode } from 'antd/es/tree'
 import { ChevronRight, File, FilePlus, Folder, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { useFilesStore } from '../stores/Files'
-import { useMeimeiStore } from '../stores/meimeiStore'
-import { useTabStore } from '../stores/tab-store'
+import { useFilesStore } from '../stores/files'
+import { useMeimeiStore } from '../stores/meimei'
+import { useTabStore } from '../stores/tabs'
 import { cn } from '../utils'
 import FileDialog from './file-dialog'
 
@@ -51,7 +51,7 @@ export function FileTree({ treeData }: FileTreeProps) {
     const onSelect: TreeProps['onSelect'] = (_, { node }) => {
         if (node.isLeaf) {
             let path = node.key as string;
-            addTab({ data: treeData.items[path].data, value: path, type: "editor" });
+            addTab({ value: path, type: "editor" }, treeData.items[path].data);
             selectTab(path);
             setSelected(path);
         }
@@ -78,16 +78,13 @@ export function FileTree({ treeData }: FileTreeProps) {
 
     const handleDrop: TreeProps['onDrop'] = info => {
         const dragKey = info.dragNode.key as string
-        const dropKey = info.node.key as string
+        const dropKey = info.node.key as string;
 
-        console.log("Dragged:", dragKey)
-        console.log("Dropped on:", dropKey)
-
-            ; (async () => {
-                let dropInfo = await lstat(dropKey)
-                if (!dropInfo.isDirectory) useFilesStore.getState().reparentFile(dragKey, await dirname(dropKey))
-                else useFilesStore.getState().reparentFile(dragKey, dropKey)
-            })()
+        (async () => {
+            let dropInfo = await lstat(dropKey)
+            if (!dropInfo.isDirectory) useFilesStore.getState().reparentFile(dragKey, await dirname(dropKey))
+            else useFilesStore.getState().reparentFile(dragKey, dropKey)
+        })()
     }
 
     useEffect(() => {
@@ -239,16 +236,14 @@ function FileDropdown() {
                                 if (title) {
                                     try {
                                         let path = await join(root, `${title}.md`)
-
-                                        console.log(path)
                                         await addFile(path)
                                         addTab({
-                                            data: {
-                                                path,
-                                                name: title,
-                                                extension: "md",
-                                                directory: root
-                                            }, value: path, type: "editor"
+                                            value: path, type: "editor"
+                                        }, {
+                                            path,
+                                            name: title,
+                                            extension: "md",
+                                            directory: root
                                         })
                                         select(path)
                                         setSelected(path)

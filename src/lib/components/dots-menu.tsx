@@ -1,7 +1,7 @@
 import { Circle } from "lucide-react";
 import { useWindowStore } from "../stores/window";
 import { Window } from "@tauri-apps/api/window";
-import { useMeimeiStore } from "../stores/meimeiStore";
+import { useMeimeiStore } from "../stores/meimei";
 
 export default function DotsMenu() {
     //@ts-ignore

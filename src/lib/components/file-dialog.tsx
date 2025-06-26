@@ -5,7 +5,7 @@ import {
     DialogHeader,
     DialogTitle
 } from "@/components/ui/dialog"
-import { useFilesStore } from "../stores/Files"
+import { useFilesStore } from "../stores/files"
 import { Button } from "@/components/ui/button"
 
 export default function FileDialog() {

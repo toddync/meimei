@@ -1,39 +1,23 @@
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { cn } from '@/lib/utils';
-import TabContext from '@mui/lab/TabContext';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
-import { X } from "lucide-react";
-import { useEffect } from "react";
+import {
+    Carousel,
+    CarouselApi,
+    CarouselContent,
+    CarouselItem
+} from "@/components/ui/carousel";
+import { useEffect, useState } from "react";
 import blooming from '../../assets/blooming.svg';
 import { useCommandStore } from "../stores/command";
-import { useFilesStore } from "../stores/Files";
-import { useMeimeiStore } from "../stores/meimeiStore";
-import { useTabStore } from "../stores/tab-store";
-import scrollButtons from './scrollButtons';
+import { useMeimeiStore } from "../stores/meimei";
+import { useTabStore } from "../stores/tabs";
+import TabBar from "./tab-bar";
 import TabBody from "./tab-body";
 
 export default function PageResolver() {
     const tabs = useTabStore(state => state.tabs)
-    const value = useTabStore(state => state.value)
-    const select = useTabStore(state => state.select)
     const remove = useTabStore(state => state.remove)
-    const selectedIndex = useTabStore(state => state.selectedIndex)
-
-    const setSelected = useFilesStore(s => s.setSelected)
-
     const toggleSidebar = useMeimeiStore(s => s.toggleSidebar)
     const toggleMenu = useCommandStore(s => s.toggle)
-
-    useEffect(() => {
-        (async () => {
-            let tabs = document.querySelectorAll(".css-veleun-MuiButtonBase-root-MuiTab-root")
-            for (let i = 0; i < tabs.length; i++)
-                tabs[i].classList.remove("css-veleun-MuiButtonBase-root-MuiTab-root")
-        })()
-        setSelected(value)
-    }, [value, tabs])
 
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
@@ -92,79 +76,41 @@ export default function PageResolver() {
     }
 
     return (
-        //@ts-ignore
-        <TabContext value={value} className="page-h TabContext">
-            <div className='bg-muted-foreground/5 dark:bg-sidebar h-11 sticky top-0 z-50 border-b shadow-background shadow-2xl'>
-                <Tabs
-                    className="TabList"
-                    scrollButtons="auto"
-                    variant="scrollable"
-                    value={selectedIndex}
-                    slots={{ scrollButtons }}
-                    onChange={(_, value) => select(value)}
-                    TabIndicatorProps={{ children: <span className="MuiTabs-indicatorSpan" /> }}
-                >
-                    {tabs.map((tab, i) => (
-                        <div
-                            className={cn(
-                                buttonVariants({ variant: "outline" }),
-                                "group relative max-w-56 min-w-24 px-1.5 border-b-0 rounded-b-none transition-none",
-                                value == tab.value && "bg-background dark:bg-background h-10",
-                                value != tab.value && "bg-accent dark:bg-sidebar h-[39px]"
-                            )}
-                        >
-                            <Tab value={tab.value} disableRipple className="Tab" />
-                            <button onClick={() => {
-                                select(tab.value)
-                                setSelected(tab.data.path)
-                                console.log(tab.data.path)
-                            }} className="absolute size-full z-10 opacity-0" />
-                            <span className="overflow-hidden whitespace-nowrap text-ellipsis flex-1 text-center">
-                                {tab.data.name}
-                            </span>
-
-                            <Button
-                                size="icon"
-                                variant="ghost"
-                                onClick={() => { remove(i) }}
-                                className="size-fit p-0.5 my-auto z-20"
-                            >
-                                <X className="text-muted-foreground group-hover:text-red-600 transition-colors" />
-                            </Button>
-                        </div>
-                    ))}
-                </Tabs>
-            </div>
-
-            {tabs.map((tab) => <TabBody tab={tab} key={tab.value} />)}
-        </TabContext>
+        <>
+            <TabBar />
+            <TabContents />
+        </>
     );
 }
 
-// function TabHead({ i, tab, value, select, remove }: { i: number, tab: Tab_, value: string, select: (s: string) => void, remove: (i: number) => void }) {
-//     return (
-//         <div
-//             className={cn(
-//                 buttonVariants({ variant: "outline" }),
-//                 "group relative max-w-56 min-w-24 px-1.5 border-b-0 rounded-b-none transition-none",
-//                 value == tab.value && "bg-background dark:bg-background h-10",
-//                 value != tab.value && "bg-accent dark:bg-sidebar h-[39px]"
-//             )}
-//         >
-//             <Tab value={tab.value} disableRipple className="Tab" />
-//             <button onClick={() => select(tab.value)} className="absolute size-full z-10 opacity-0" />
-//             <span className="overflow-hidden whitespace-nowrap text-ellipsis flex-1 text-center">
-//                 {tab.data.name}
-//             </span>
+function TabContents() {
+    const tabs = useTabStore(state => state.tabs)
+    const selectedIndex = useTabStore(s => s.selectedIndex)
+    const [api, setApi] = useState<CarouselApi>()
 
-//             <Button
-//                 size="icon"
-//                 variant="ghost"
-//                 onClick={() => { remove(i) }}
-//                 className="size-fit p-0.5 my-auto z-20"
-//             >
-//                 <X className="text-muted-foreground group-hover:text-red-600 transition-colors" />
-//             </Button>
-//         </div>
-//     )
-// }
+    useEffect(() => {
+        api?.scrollSnapList().length != tabs.length && api?.reInit();
+        api?.scrollTo(selectedIndex)
+
+        setTimeout(() => {
+            const currentSlide = document.querySelector(`[data-carousel-index="${selectedIndex}"]`);
+            if (currentSlide) { //@ts-ignore
+                currentSlide.style.display = 'none'; //@ts-ignore
+                void currentSlide.offsetHeight; //@ts-ignore
+                currentSlide.style.display = '';
+            }
+        }, 50);
+    }, [api, selectedIndex])
+
+    return (
+        <Carousel className="max-h-full min-h-full grid" setApi={setApi} opts={{ watchDrag: false, dragFree: false }}>
+            <CarouselContent className="min-h-full max-h-full">
+                {tabs.map((tab, i) =>
+                    <CarouselItem className="min-h-full max-h-full" data-carousel-index={i} key={tab.value}>
+                        <TabBody tab={tab} />
+                    </CarouselItem>
+                )}
+            </CarouselContent>
+        </Carousel>
+    )
+}

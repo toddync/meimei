@@ -3,7 +3,7 @@ import { SidebarMenuButton } from "@/components/ui/sidebar"
 
 import { Moon, Settings, Sun } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useMeimeiStore } from "../stores/meimeiStore"
+import { useMeimeiStore } from "../stores/meimei"
 
 export default function Setting() {
     const [theme, setTheme] = useState<"light" | "dark">((localStorage.getItem("theme") as "light" | "dark") || "dark")

@@ -8,10 +8,10 @@ import {
 } from "@/components/ui/command"
 import { useEffect, useState } from "react"
 import { useCommandStore } from "../stores/command"
-import { useFilesStore } from "../stores/Files"
+import { useFilesStore } from "../stores/files"
 import { TreeItem } from "../stores/loadFiles"
-import { useMeimeiStore } from "../stores/meimeiStore"
-import { Tab, useTabStore } from "../stores/tab-store"
+import { useMeimeiStore } from "../stores/meimei"
+import { Tab, useTabStore } from "../stores/tabs"
 
 import { v4 as uuidv4 } from "uuid"
 
@@ -40,7 +40,7 @@ export default function Commands() {
             .filter((t): t is Tab => t !== undefined)
 
         const availableFiles = Object.entries(files.items).map(([_, file]) =>
-            (tabs.findIndex(tab => tab.value === file.data.path) === -1 && file) || undefined
+            (tabs.findIndex(tab => useTabStore.getState().TabDataMap[tab.value].path === file.data.path) === -1 && file) || undefined
         )
 
         setFileList({ tabs: orderedTabs, files: availableFiles.filter(e => e != undefined) })
@@ -80,7 +80,7 @@ export default function Commands() {
                                     focus?.()
                                 }}>
                                 <span className="whitespace-nowrap overflow-hidden text-ellipsis">
-                                    {tab.data.name}
+                                    {useTabStore.getState().getData(tab.value)?.name}
                                 </span>
                             </CommandItem>
                         ))}
@@ -94,7 +94,7 @@ export default function Commands() {
                                 <CommandItem
                                     key={i}
                                     onSelect={() => {
-                                        addTab({ data: { ...file.data }, value: uuidv4(), type: "editor" })
+                                        addTab({ value: uuidv4(), type: "editor" }, file.data)
                                         select(file?.data.path)
                                         //@ts-ignore
                                         setSelected(file)
