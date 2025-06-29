@@ -1,12 +1,5 @@
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
-    ContextMenu,
-    ContextMenuContent,
-    ContextMenuItem,
-    ContextMenuShortcut,
-    ContextMenuTrigger,
-} from "@/components/ui/context-menu"
-import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuSub,
@@ -20,14 +13,16 @@ import { lstat } from '@tauri-apps/plugin-fs'
 import type { TreeProps } from 'antd'
 import { ConfigProvider, Tree } from 'antd'
 import type { DataNode } from 'antd/es/tree'
-import { ChevronRight, File, FilePlus, Folder, Plus, Trash2 } from 'lucide-react'
+import { ChevronRight, FilePlus, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { v4 as uuid } from 'uuid'
 import { useFilesStore } from '../stores/files'
 import { useMeimeiStore } from '../stores/meimei'
 import { useTabStore } from '../stores/tabs'
-import { cn } from '../utils'
 import FileDialog from './file-dialog'
+import TreeFile from './tree-file'
+import TreeFolder from './tree-folder'
 
 interface FileTreeProps {
     treeData: {
@@ -51,7 +46,7 @@ export function FileTree({ treeData }: FileTreeProps) {
     const onSelect: TreeProps['onSelect'] = (_, { node }) => {
         if (node.isLeaf) {
             let path = node.key as string;
-            addTab({ value: path, type: "editor" }, treeData.items[path].data);
+            addTab({ value: uuid(), type: "editor" }, treeData.items[path].data);
             selectTab(path);
             setSelected(path);
         }
@@ -80,15 +75,18 @@ export function FileTree({ treeData }: FileTreeProps) {
         const dragKey = info.dragNode.key as string
         const dropKey = info.node.key as string;
 
+
         (async () => {
             let dropInfo = await lstat(dropKey)
-            if (!dropInfo.isDirectory) useFilesStore.getState().reparentFile(dragKey, await dirname(dropKey))
+            let dir = await dirname(dropKey);
+            if (!dropInfo.isDirectory || info.dropPosition == -1) useFilesStore.getState().reparentFile(dragKey, dir)
             else useFilesStore.getState().reparentFile(dragKey, dropKey)
         })()
     }
 
     useEffect(() => {
         setExpanded(expandedKeys)
+        console.log(expandedKeys)
     }, [expandedKeys])
 
     return <>
@@ -112,7 +110,7 @@ export function FileTree({ treeData }: FileTreeProps) {
                 }
             }}>
             <Tree
-                className='overflow-auto h-full'
+                className='overflow-auto h-full !pt-1'
                 draggable
                 onDrop={handleDrop}
                 onSelect={onSelect}
@@ -135,7 +133,6 @@ export function FileTree({ treeData }: FileTreeProps) {
                         .toLowerCase()
                         .indexOf(searchValue.toLowerCase())
 
-                    // const match = title.substring(matchIndex, matchIndex + searchValue.length)
                     let displayTitle = title
                     if (searchValue && matchIndex !== -1) {
                         const before = title.substring(0, matchIndex)
@@ -146,36 +143,16 @@ export function FileTree({ treeData }: FileTreeProps) {
                         displayTitle = (
                             <span>
                                 {before}
-                                <span className="bg-yellow-300 dark:bg-yellow-600 rounded px-0.5">{match}</span>
+                                <span className="bg-yellow-300 dark:text-black rounded px-0.5">{match}</span>
                                 {after}
                             </span>
                         )
                     }
                     return (
-                        <ContextMenu>
-                            <ContextMenuTrigger>
-                                <div className={cn(buttonVariants({ variant: "ghost" }), 'justify-start min-w-fit w-full hover:bg-primary/10', selected == node.key && "bg-primary/20")}>
-                                    <span className='*:text-muted-foreground *:size-40'>
-                                        {node.isLeaf ? <File /> : <Folder />}
-                                    </span>
-                                    <span className="whitespace-nowrap text-foreground">{displayTitle}</span>
-                                </div>
-                            </ContextMenuTrigger>
-                            <ContextMenuContent>
-                                <ContextMenuItem onSelect={() => {
-                                    setDialogContext({
-                                        action: "delete",
-                                        path: node.key
-                                    })
-                                    setDialogOpen(true)
-                                }}>
-                                    Delete
-                                    <ContextMenuShortcut>
-                                        <Trash2 />
-                                    </ContextMenuShortcut>
-                                </ContextMenuItem>
-                            </ContextMenuContent>
-                        </ContextMenu>
+                        node.isLeaf ?
+                            <TreeFile name={displayTitle} node={node} selected={selected || ""} setDialogContext={setDialogContext} setDialogOpen={setDialogOpen} />
+                            :
+                            <TreeFolder name={displayTitle} node={node} selected={selected || ""} setDialogContext={setDialogContext} setDialogOpen={setDialogOpen} />
                     )
                 }}
             />

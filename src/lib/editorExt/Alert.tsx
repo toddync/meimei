@@ -1,7 +1,7 @@
+import { Separator } from "@/components/ui/separator";
 import {
     BlockNoteEditor,
-    defaultProps,
-    insertOrUpdateBlock,
+    insertOrUpdateBlock
 } from "@blocknote/core";
 import {
     BlockTypeSelectItem,
@@ -16,7 +16,6 @@ import {
 } from "react-icons/md";
 import { RiAlertFill } from "react-icons/ri";
 import { cn } from "../utils";
-import { Separator } from "@/components/ui/separator";
 
 // Alert type configurations
 export const alertTypes = [
@@ -67,8 +66,6 @@ export const Block = createReactBlockSpec(
     {
         type: "alert",
         propSchema: {
-            textAlignment: defaultProps.textAlignment,
-            textColor: defaultProps.textColor,
             type: {
                 default: "warning",
                 values: ["warning", "error", "info", "success"],
@@ -77,91 +74,70 @@ export const Block = createReactBlockSpec(
         content: "inline",
     },
     {
-        toExternalHTML: (props) => {
-            return (
-                <div className="alert" data-type={props.block.props.type} data-align={props.block.props.textAlignment}>
-                    {/* @ts-ignore */}
-                    {props.block.content?.map((i) => i.text).join(" ")}
-                </div>
-            );
-        },
-
         render: (props) => {
             const alertType = alertTypes.find(
                 (a) => a.value === props.block.props.type
             )!;
             const Icon = alertType.icon;
             const type = props.block.props.type
-            const align = props.block.props.textAlignment
 
             return (
-                <div className={cn(
-                    "flex my-1",
-                    align == "left" || align == "justify" && "justify-start",
-                    align == "center" && "justify-center",
-                    align == "right" && "justify-end",
-                )}>
-                    <div
-                        className={cn(
-                            "flex gap-2 rounded-md w-fit font-bold",
-                            type == "warning" && "bg-yellow-400/40",
-                            type == "error" && "bg-red-400/40",
-                            type == "info" && "bg-blue-400/40",
-                            type == "success" && "bg-green-400/40"
-                        )}
-                        data-alert-type={type}
-                    >
-                        <Menu withinPortal={false}>
-                            <Menu.Target>
-                                <div className="flex">
-                                    <div
-                                        className="p-2 flex border-r-2"
-                                        contentEditable={false}
-                                    >
-                                        <Icon
-                                            className={cn(
-                                                "size-6 my-auto",
-                                                type == "warning" && "fill-yellow-400",
-                                                type == "error" && "fill-red-400",
-                                                type == "info" && "fill-blue-400",
-                                                type == "success" && "fill-green-400"
-                                            )}
-                                            data-alert-icon-type={props.block.props.type}
-                                        />
-                                    </div>
-                                    <Separator orientation="vertical" />
+                <div
+                    className={cn(
+                        "flex gap-2 rounded-md w-fit font-bold",
+                        type == "warning" && "bg-yellow-400/40",
+                        type == "error" && "bg-red-400/40",
+                        type == "info" && "bg-blue-400/40",
+                        type == "success" && "bg-green-400/40"
+                    )}
+                >
+                    <Menu withinPortal={false}>
+                        <Menu.Target>
+                            <div className="flex focus:outline-amber-50" contentEditable={false}>
+                                <div className="p-2 flex">
+                                    <Icon
+                                        className={cn(
+                                            "size-6 my-auto",
+                                            type == "warning" && "fill-yellow-400",
+                                            type == "error" && "fill-red-400",
+                                            type == "info" && "fill-blue-400",
+                                            type == "success" && "fill-green-400"
+                                        )}
+                                        data-alert-icon-type={props.block.props.type}
+                                    />
                                 </div>
-                            </Menu.Target>
+                                <Separator orientation="vertical" className="!h-[80%] my-auto" />
+                            </div>
+                        </Menu.Target>
 
-                            <Menu.Dropdown>
-                                <Menu.Label>Alert Type</Menu.Label>
-                                <Menu.Divider />
-                                {alertTypes.map((type) => {
-                                    const ItemIcon = type.icon;
-                                    return (
-                                        <Menu.Item
-                                            key={type.value}
-                                            leftSection={
-                                                <ItemIcon
-                                                    className="alert-icon"
-                                                    data-alert-icon-type={type.value}
-                                                />
-                                            }
-                                            onClick={() =>
-                                                props.editor.updateBlock(props.block, {
-                                                    type: "alert",
-                                                    props: { type: type.value },
-                                                })
-                                            }
-                                        >
-                                            {type.title}
-                                        </Menu.Item>
-                                    );
-                                })}
-                            </Menu.Dropdown>
-                        </Menu>
-                        <div className="p-5" ref={props.contentRef} />
-                    </div>
+                        <Menu.Dropdown>
+                            <Menu.Label>Alert Type</Menu.Label>
+                            <Menu.Divider />
+                            {alertTypes.map((type) => {
+                                const ItemIcon = type.icon;
+                                return (
+                                    <Menu.Item
+                                        key={type.value}
+                                        leftSection={
+                                            <ItemIcon
+                                                className="alert-icon"
+                                                data-alert-icon-type={type.value}
+                                            />
+                                        }
+                                        onClick={() =>
+                                            props.editor.updateBlock(props.block, {
+                                                type: "alert",
+                                                props: { type: type.value },
+                                            })
+                                        }
+                                    >
+                                        {type.title}
+                                    </Menu.Item>
+                                );
+                            })}
+                        </Menu.Dropdown>
+                    </Menu>
+                    <div className="p-5" ref={props.contentRef} />
                 </div>
             );
         },

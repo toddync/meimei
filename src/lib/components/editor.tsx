@@ -9,11 +9,13 @@ import debounce from "lodash.debounce";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import * as Alert from "../editorExt/Alert";
+import { toCustom, toDefault } from "../scripts/block-converter";
 import { Selection, useFilesStore } from "../stores/files";
 import { useMeimeiStore } from "../stores/meimei";
 import { Tab } from "../stores/tabs";
 import Loader from "./loader";
 import Title from "./title";
+import { v4 as uuid } from "uuid";
 
 interface EditorPageProps {
     file: { path: string; name: string, directory: string, extension: string }
@@ -32,23 +34,24 @@ export function EditorPage({ file, tab }: EditorPageProps) {
     let getSelection = useFilesStore(s => s.getSelection)
 
     let selection = getSelection(file.path)
+    let [id, setId] = useState(uuid())
 
     const publishChange = useCallback(
         async (markdown: string) => {
             if (markdown !== content) {
                 try {
-                    await writeTextFile(tab.data.path, markdown);
+                    await writeTextFile(file.path, markdown);
                 } catch (err) {
                     console.error("Failed to write file:", err);
                 }
             }
         },
-        [file.path, file, content]
+        [file, content]
     );
 
     const publishSelection = useCallback(async (s: Selection) => {
         setSelection(file.path, s)
-    }, [file.path])
+    }, [file])
 
     const renameFile = debounce(async (name: string) => {
         const newPath = await join(file.directory, `${name}.md`)
@@ -58,32 +61,32 @@ export function EditorPage({ file, tab }: EditorPageProps) {
     }, 500)
 
     useEffect(() => {
-        let cancelled = false;
+        // let cancelled = false;
 
-        (async () => {
+        (async function startEditorPage() {
             try {
                 setTitle(file.name);
                 setContent("");
                 setEditorContent(false);
 
                 const text = await readTextFile(file.path);
-                if (!cancelled) {
-                    setContent(text);
-                    const parsed = await editor.tryParseMarkdownToBlocks(text);
-                    setEditorContent(parsed || []);
-                }
+                // if (!cancelled) {
+                setContent(text);
+                const parsed = await editor.tryParseMarkdownToBlocks(text);
+                setEditorContent(parsed || []);
+                // }
             } catch (err) {
                 console.error("Failed to read file:", err);
             }
         })();
 
-        return () => {
-            cancelled = true;
-        };
+        // return () => {
+        //     cancelled = true;
+        // };
     }, [file]);
 
     return (
-        <div className="flex flex-1 flex-col p-5 pt-10 overflow-scroll" id="editorDiv">
+        <div className="flex flex-1 flex-col px-5 pb-10 overflow-auto" id={id}>
             {editorContent ?
                 <>
                     <Title value={title} error={error} onChange={(e) => {
@@ -93,6 +96,7 @@ export function EditorPage({ file, tab }: EditorPageProps) {
                         } else toast.error("Invalid title", { description: "File can't have an empty title" })
                     }} />
                     <Editor
+                        id={id}
                         selection={selection}
                         content={editorContent}
                         publishChange={publishChange}
@@ -117,13 +121,14 @@ const schema = BlockNoteSchema.create({
 });
 
 interface EditorProps {
+    id: string;
     content?: string;
     selection?: Selection;
     publishChange: (markdown: string) => Promise<void>;
     publishSelection?: (s: Selection) => void;
 }
 
-export function Editor({ content, selection, publishChange, publishSelection }: EditorProps) {
+export function Editor({ id, content, selection, publishChange, publishSelection }: EditorProps) {
     const setFocus = useMeimeiStore(s => s.setFocus)
     const editor = useCreateBlockNote({
         schema,
@@ -137,12 +142,13 @@ export function Editor({ content, selection, publishChange, publishSelection }: 
             },
 
             onSelectionUpdate(e) {
-                let editorDiv = document.getElementById("editorDiv");
+                let editorDiv = document.getElementById(id);
                 let editor = e.editor;
                 const selection = editor.state.selection.ranges[0];
 
                 publishSelection?.({ from: selection.$from.pos, to: selection.$to.pos })
 
+                if (!editorDiv) return;
                 if (selection.$to.pos != selection.$from.pos) return;
                 if (selection.$to.pos <= 3) {
                     editorDiv.scrollTo({
@@ -175,11 +181,13 @@ export function Editor({ content, selection, publishChange, publishSelection }: 
     );
 
     const changeHandler = useCallback(async () => {
-        const markdown = await editor.blocksToMarkdownLossy(editor.document);
+        const markdown = await editor.blocksToMarkdownLossy(toDefault(editor));
+        toCustom(editor)
         debouncedPublish(markdown);
     }, [editor, debouncedPublish]);
 
     useEffect(() => {
+        toCustom(editor)
         setFocus(() => requestAnimationFrame(() => editor.focus()))
         return () => {
             setFocus(undefined)

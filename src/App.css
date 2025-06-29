@@ -235,7 +235,7 @@ p {
 }
 
 .ant-tree-switcher-noop {
-    max-width: 0px;
+    display: none;
 }
 
 .ant-tree-node-content-wrapper {

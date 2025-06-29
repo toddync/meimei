@@ -9,7 +9,7 @@ import {
 import { useEffect, useState } from "react"
 import { useCommandStore } from "../stores/command"
 import { useFilesStore } from "../stores/files"
-import { TreeItem } from "../stores/loadFiles"
+import { TreeItem } from "../scripts/load-files"
 import { useMeimeiStore } from "../stores/meimei"
 import { Tab, useTabStore } from "../stores/tabs"
 

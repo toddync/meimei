@@ -98,6 +98,7 @@ export const useTabStore = create<TabStore>()(
         update: (value: string, data: EditorTab) => {
             let { TabDataMap } = get()
             set({ TabDataMap: { ...TabDataMap, [value]: data } })
+            get().persist()
         },
 
         get: (value: string) => {

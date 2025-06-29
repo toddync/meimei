@@ -2,7 +2,7 @@
 import * as path from '@tauri-apps/api/path'
 import { exists, lstat, mkdir, remove, rename, writeTextFile } from '@tauri-apps/plugin-fs'
 import { create } from 'zustand'
-import loadFilesFromDisk, { TreeData } from './loadFiles'
+import loadFilesFromDisk, { TreeData } from '../scripts/load-files'
 import { useMeimeiStore } from './meimei'
 import { useTabStore } from './tabs'
 import { toast } from 'sonner'
@@ -70,11 +70,23 @@ export const useFilesStore = create<FilesStore>((set, get) => ({
         if (await exists(newPath)) return (toast.error("Duplicate name", { description: "A file with the same name already exists on this folder" }), false)
         await rename(oldPath, newPath);
 
+        if (!value) {
+            let tab = useTabStore.getState().getByPath(oldPath)
+            value = tab?.value
+        }
+
         if (value) {
             let { data } = useTabStore.getState().get(value)
             useTabStore.getState().update(value, { ...data, path: newPath, name: (await path.basename(newPath)).replace(".md", "") })
         }
 
+        let { expanded, selection } = get()
+        if (expanded[oldPath]) set({ expanded: { ...expanded, [newPath]: expanded[oldPath] } })
+        if (selection[oldPath]) set({ selection: { ...selection, [newPath]: selection[oldPath] } })
+
+        if (get().selected == oldPath) set({ selected: newPath })
+
+        get().persist()
         await get().hydrate(useMeimeiStore.getState().workRoot);
         return true
     },
@@ -111,6 +123,7 @@ export const useFilesStore = create<FilesStore>((set, get) => ({
 
             useTabStore.getState().removeByPath(targetPath)
 
+            get().persist()
             await get().hydrate(useMeimeiStore.getState().workRoot);
             toast.success("File removed");
         } catch (err) {
@@ -129,15 +142,7 @@ export const useFilesStore = create<FilesStore>((set, get) => ({
             const success = await get().renameFile(oldPath, newPath);
             if (!success) throw new Error()
 
-            let tab = useTabStore.getState().getByPath(oldPath)
-            if (tab) {
-                useTabStore.getState().update(tab.value, { ...tab.data, path: newPath, directory: newParentDir, name: (await path.basename(newPath)).replace(".md", "") })
-            }
-
             toast.success("File moved")
-            await get().hydrate(useMeimeiStore.getState().workRoot)
-            if (get().selected == oldPath) set({ selected: newPath })
-
         } catch (err) {
             console.error(err);
             toast.error("Failed to move file", { description: String(err) });
@@ -181,7 +186,7 @@ export const useFilesStore = create<FilesStore>((set, get) => ({
         return get().selection[path] || { from: 1, to: 1 };
     },
     setSelection: (path, s) => {
-        const selection = { ...get().selection };
+        const selection = get().selection;
         selection[path] = s;
         set({ selection });
         get().persist()
