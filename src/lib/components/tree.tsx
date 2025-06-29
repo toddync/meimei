@@ -13,7 +13,7 @@ import { lstat } from '@tauri-apps/plugin-fs'
 import type { TreeProps } from 'antd'
 import { ConfigProvider, Tree } from 'antd'
 import type { DataNode } from 'antd/es/tree'
-import { ChevronRight, FilePlus, Plus } from 'lucide-react'
+import { ChevronRight, FilePlus, FolderPlus, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { v4 as uuid } from 'uuid'
@@ -23,6 +23,7 @@ import { useTabStore } from '../stores/tabs'
 import FileDialog from './file-dialog'
 import TreeFile from './tree-file'
 import TreeFolder from './tree-folder'
+import { Separator } from '@/components/ui/separator'
 
 interface FileTreeProps {
     treeData: {
@@ -33,7 +34,7 @@ interface FileTreeProps {
 
 export function FileTree({ treeData }: FileTreeProps) {
     const setExpanded = useFilesStore(s => s.setExpanded);
-    const selected = useFilesStore(s => s.selected);
+
     const setSelected = useFilesStore(s => s.setSelected);
     const addTab = useTabStore(s => s.add);
     const selectTab = useTabStore(s => s.select);
@@ -86,7 +87,6 @@ export function FileTree({ treeData }: FileTreeProps) {
 
     useEffect(() => {
         setExpanded(expandedKeys)
-        console.log(expandedKeys)
     }, [expandedKeys])
 
     return <>
@@ -110,13 +110,14 @@ export function FileTree({ treeData }: FileTreeProps) {
                 }
             }}>
             <Tree
-                className='overflow-auto h-full !pt-1'
+                className='overflow-auto h-full flex flex-col'
                 draggable
                 onDrop={handleDrop}
                 onSelect={onSelect}
                 treeData={antTreeData}
                 expandedKeys={expandedKeys}
                 autoExpandParent={autoExpandParent}
+                onDragOver={({ node }) => setExpandedKeys(keys => (!keys.includes(node.key as string) && keys.push(node.key as string), [...keys]))}
                 onExpand={(e) => {
                     setExpandedKeys(e as string[]);
                     setAutoExpandParent(false);
@@ -150,11 +151,12 @@ export function FileTree({ treeData }: FileTreeProps) {
                     }
                     return (
                         node.isLeaf ?
-                            <TreeFile name={displayTitle} node={node} selected={selected || ""} setDialogContext={setDialogContext} setDialogOpen={setDialogOpen} />
+                            <TreeFile name={displayTitle} node={node} setDialogContext={setDialogContext} setDialogOpen={setDialogOpen} />
                             :
-                            <TreeFolder name={displayTitle} node={node} selected={selected || ""} setDialogContext={setDialogContext} setDialogOpen={setDialogOpen} />
+                            <TreeFolder name={displayTitle} node={node} setDialogContext={setDialogContext} setDialogOpen={setDialogOpen} />
                     )
                 }}
+                dropIndicatorRender={() => <Separator />}
             />
         </ConfigProvider>
     </>
@@ -238,7 +240,31 @@ function FileDropdown() {
                         </Button>
                     </DropdownMenuSubContent>
                 </DropdownMenuSub>
-                {/* <DropdownMenuItem>New folder</DropdownMenuItem> */}
+                <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                        New folder
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className='flex gap-1'>
+                        <Input autoFocus placeholder='Folder Name...' value={title} onChange={e => setTitle(e.target.value)} />
+                        <Button size="icon"
+                            onClick={async () => {
+                                if (title) {
+                                    try {
+                                        let path = await join(root, `${title}`)
+                                        await addFile(path, true)
+                                        setTitle(undefined)
+                                        setOpen(false)
+                                    } catch (error) {
+                                        console.error(error)
+                                        toast.error("Error creating folder", { description: "It appears there was a error creating this folder" })
+                                    }
+                                } else toast.warning("Please fill the title", { description: "You need to fill the title" })
+                            }}
+                        >
+                            <FolderPlus />
+                        </Button>
+                    </DropdownMenuSubContent>
+                </DropdownMenuSub>
             </DropdownMenuContent>
         </DropdownMenu>
     )

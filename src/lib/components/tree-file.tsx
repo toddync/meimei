@@ -15,10 +15,11 @@ import { dirname, extname, join } from "@tauri-apps/api/path"
 import { useFilesStore } from "../stores/files"
 import { toast } from "sonner"
 
-export default function TreeFile({ name, node, selected, setDialogContext, setDialogOpen }: { name: string | ReactNode, node: TreeDataNode, selected: string, setDialogContext: (i: any) => void, setDialogOpen: (i: any) => void }) {
+export default function TreeFile({ name, node, setDialogContext, setDialogOpen }: { name: string | ReactNode, node: TreeDataNode, setDialogContext: (i: any) => void, setDialogOpen: (i: any) => void }) {
     let [editing, setEditing] = useState<boolean>(false)
     let [extension, setExtension] = useState<string>()
     let [title, setTitle] = useState<string>()
+    const selected = useFilesStore(s => s.selected);
 
     useEffect(() => {
         (async () => {
@@ -35,6 +36,7 @@ export default function TreeFile({ name, node, selected, setDialogContext, setDi
             let newPath = await join(dir, title)
 
             useFilesStore.getState().renameFile(path, newPath)
+            toast.success("File renamed")
         } else {
             toast.warning("Invalid name", { description: "Files can't have empty names" })
         }

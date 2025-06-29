@@ -27,7 +27,7 @@ export default function Title({ value, error, onChange }: { value: string; error
     };
 
     return (
-        <div className="relative max-w-5xl w-full mx-auto">
+        <div className="relative max-w-5xl mt-10 w-full mx-auto">
             {error && <TooltipProvider>
                 <Tooltip >
                     <TooltipTrigger className="absolute -translate-y-1/2 -translate-x-1/2">
@@ -56,6 +56,7 @@ export default function Title({ value, error, onChange }: { value: string; error
                 ref={textareaRef}
                 rows={1}
                 value={value}
+                disabled
                 onChange={handleChange}
                 className="w-full text-4xl font-extrabold resize-none overflow-hidden border-none focus:outline-none bg-transparent px-5"
                 style={{ height: "auto" }}

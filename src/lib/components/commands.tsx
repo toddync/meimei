@@ -75,7 +75,7 @@ export default function Commands() {
                                 className={value === tab.value ? "bg-primary/20 data-[selected=true]:bg-primary/40" : ""}
                                 onSelect={() => {
                                     select(tab.value)
-                                    setSelected(tab.value)
+                                    setSelected(useTabStore.getState().getData(tab.value).path)
                                     toggle()
                                     focus?.()
                                 }}>

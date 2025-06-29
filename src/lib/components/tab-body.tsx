@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Tab, useTabStore } from "../stores/tabs";
 import { EditorPage } from "./editor";
 
@@ -7,7 +6,7 @@ export default function TabBody({ tab }: { tab: Tab }) {
 
     return (<>
         {file &&
-            <div className="h-[calc(100svh-76px)] !pt-10 TabBody">
+            <div className="h-[calc(100svh-76px)] flex flex-1 overflow-hidden">
                 {tab.type == "editor" && <EditorPage file={file} tab={tab} />}
             </div>
         }
