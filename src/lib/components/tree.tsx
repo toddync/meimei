@@ -1,12 +1,5 @@
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
-    ContextMenu,
-    ContextMenuContent,
-    ContextMenuItem,
-    ContextMenuShortcut,
-    ContextMenuTrigger,
-} from "@/components/ui/context-menu"
-import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuSub,
@@ -15,19 +8,22 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { Input } from '@/components/ui/input'
+import { Separator } from '@/components/ui/separator'
 import { dirname, join } from '@tauri-apps/api/path'
 import { lstat } from '@tauri-apps/plugin-fs'
 import type { TreeProps } from 'antd'
 import { ConfigProvider, Tree } from 'antd'
 import type { DataNode } from 'antd/es/tree'
-import { ChevronRight, File, FilePlus, Folder, Plus, Trash2 } from 'lucide-react'
+import { ChevronRight, FilePlus, FolderPlus, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { useFilesStore } from '../stores/files'
+import { v4 as uuid } from 'uuid'
+import { isImg, useFilesStore } from '../stores/files'
 import { useMeimeiStore } from '../stores/meimei'
 import { useTabStore } from '../stores/tabs'
-import { cn } from '../utils'
 import FileDialog from './file-dialog'
+import TreeFile from './tree-file'
+import TreeFolder from './tree-folder'
 
 interface FileTreeProps {
     treeData: {
@@ -38,7 +34,7 @@ interface FileTreeProps {
 
 export function FileTree({ treeData }: FileTreeProps) {
     const setExpanded = useFilesStore(s => s.setExpanded);
-    const selected = useFilesStore(s => s.selected);
+
     const setSelected = useFilesStore(s => s.setSelected);
     const addTab = useTabStore(s => s.add);
     const selectTab = useTabStore(s => s.select);
@@ -49,9 +45,11 @@ export function FileTree({ treeData }: FileTreeProps) {
     const antTreeData: DataNode[] = convertToAntTree(treeData)?.[0]?.children || []
 
     const onSelect: TreeProps['onSelect'] = (_, { node }) => {
-        if (node.isLeaf) {
+        let store = useFilesStore.getState()
+        let file = store.files.items[node.key as string];
+        if (node.isLeaf && store.supported.includes(file.extension || "")) {
             let path = node.key as string;
-            addTab({ value: path, type: "editor" }, treeData.items[path].data);
+            addTab({ value: uuid(), type: isImg(file.extension || "") ? "image" : "editor" }, treeData.items[path].data);
             selectTab(path);
             setSelected(path);
         }
@@ -82,7 +80,8 @@ export function FileTree({ treeData }: FileTreeProps) {
 
         (async () => {
             let dropInfo = await lstat(dropKey)
-            if (!dropInfo.isDirectory) useFilesStore.getState().reparentFile(dragKey, await dirname(dropKey))
+            let dir = await dirname(dropKey);
+            if (!dropInfo.isDirectory || info.dropPosition == -1) useFilesStore.getState().reparentFile(dragKey, dir)
             else useFilesStore.getState().reparentFile(dragKey, dropKey)
         })()
     }
@@ -112,13 +111,14 @@ export function FileTree({ treeData }: FileTreeProps) {
                 }
             }}>
             <Tree
-                className='overflow-auto h-full'
+                className='overflow-auto h-full  flex flex-col'
                 draggable
                 onDrop={handleDrop}
                 onSelect={onSelect}
                 treeData={antTreeData}
                 expandedKeys={expandedKeys}
                 autoExpandParent={autoExpandParent}
+                onDragOver={({ node }) => setExpandedKeys(keys => (!keys.includes(node.key as string) && keys.push(node.key as string), [...keys]))}
                 onExpand={(e) => {
                     setExpandedKeys(e as string[]);
                     setAutoExpandParent(false);
@@ -135,7 +135,6 @@ export function FileTree({ treeData }: FileTreeProps) {
                         .toLowerCase()
                         .indexOf(searchValue.toLowerCase())
 
-                    // const match = title.substring(matchIndex, matchIndex + searchValue.length)
                     let displayTitle = title
                     if (searchValue && matchIndex !== -1) {
                         const before = title.substring(0, matchIndex)
@@ -146,38 +145,19 @@ export function FileTree({ treeData }: FileTreeProps) {
                         displayTitle = (
                             <span>
                                 {before}
-                                <span className="bg-yellow-300 dark:bg-yellow-600 rounded px-0.5">{match}</span>
+                                <span className="bg-yellow-300 dark:text-black rounded px-0.5">{match}</span>
                                 {after}
                             </span>
                         )
                     }
                     return (
-                        <ContextMenu>
-                            <ContextMenuTrigger>
-                                <div className={cn(buttonVariants({ variant: "ghost" }), 'justify-start min-w-fit w-full hover:bg-primary/10', selected == node.key && "bg-primary/20")}>
-                                    <span className='*:text-muted-foreground *:size-40'>
-                                        {node.isLeaf ? <File /> : <Folder />}
-                                    </span>
-                                    <span className="whitespace-nowrap text-foreground">{displayTitle}</span>
-                                </div>
-                            </ContextMenuTrigger>
-                            <ContextMenuContent>
-                                <ContextMenuItem onSelect={() => {
-                                    setDialogContext({
-                                        action: "delete",
-                                        path: node.key
-                                    })
-                                    setDialogOpen(true)
-                                }}>
-                                    Delete
-                                    <ContextMenuShortcut>
-                                        <Trash2 />
-                                    </ContextMenuShortcut>
-                                </ContextMenuItem>
-                            </ContextMenuContent>
-                        </ContextMenu>
+                        node.isLeaf ?
+                            <TreeFile name={displayTitle} node={node} setDialogContext={setDialogContext} setDialogOpen={setDialogOpen} />
+                            :
+                            <TreeFolder name={displayTitle} node={node} setDialogContext={setDialogContext} setDialogOpen={setDialogOpen} />
                     )
                 }}
+                dropIndicatorRender={() => <Separator />}
             />
         </ConfigProvider>
     </>
@@ -203,7 +183,6 @@ function convertToAntTree(tree: {
 
     return [buildNode(tree.rootId)]
 }
-
 
 function FileDropdown() {
     const [open, setOpen] = useState<boolean>(false)
@@ -261,7 +240,31 @@ function FileDropdown() {
                         </Button>
                     </DropdownMenuSubContent>
                 </DropdownMenuSub>
-                {/* <DropdownMenuItem>New folder</DropdownMenuItem> */}
+                <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                        New folder
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className='flex gap-1'>
+                        <Input autoFocus placeholder='Folder Name...' value={title} onChange={e => setTitle(e.target.value)} />
+                        <Button size="icon"
+                            onClick={async () => {
+                                if (title) {
+                                    try {
+                                        let path = await join(root, `${title}`)
+                                        await addFile(path, true)
+                                        setTitle(undefined)
+                                        setOpen(false)
+                                    } catch (error) {
+                                        console.error(error)
+                                        toast.error("Error creating folder", { description: "It appears there was a error creating this folder" })
+                                    }
+                                } else toast.warning("Please fill the title", { description: "You need to fill the title" })
+                            }}
+                        >
+                            <FolderPlus />
+                        </Button>
+                    </DropdownMenuSubContent>
+                </DropdownMenuSub>
             </DropdownMenuContent>
         </DropdownMenu>
     )

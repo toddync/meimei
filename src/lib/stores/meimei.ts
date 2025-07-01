@@ -83,10 +83,10 @@ export const useMeimeiStore = create<MeimeiStore>((set, get) => ({
     deactivateWorkspace: async (path: string) => {
         let { activeWorkspaces, workRoot } = get();
 
-        // if (activeWorkspaces.length > 1) {
-        activeWorkspaces = activeWorkspaces.filter(w => w != path)
-        set({ activeWorkspaces })
-        // }
+        if (activeWorkspaces.length > 1) {
+            activeWorkspaces = activeWorkspaces.filter(w => w != path)
+            set({ activeWorkspaces })
+        }
 
         await get().persist()
 

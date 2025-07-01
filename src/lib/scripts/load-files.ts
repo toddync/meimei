@@ -10,6 +10,7 @@ export interface TreeItem {
     children?: string[]
     data?: any
     parentId?: string
+    extension?: string
 }
 
 export interface TreeData {
@@ -72,6 +73,7 @@ export default async function loadFilesForReactComplexTree(base: string): Promis
             canMove: true,
             canRename: true,
             canDelete: true,
+            extension: raw.extension
         }
 
         if (treeData.items[parentId]?.children) {

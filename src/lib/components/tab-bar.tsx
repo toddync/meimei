@@ -22,7 +22,7 @@ export default function TabBar() {
             for (let i = 0; i < tabs.length; i++)
                 tabs[i].classList.remove("css-veleun-MuiButtonBase-root-MuiTab-root")
         })()
-        setSelected(value)
+        setSelected(useTabStore.getState().getData(value).path)
     }, [value, tabs])
 
     if (!tabs || tabs.length == 0) return <></>;
