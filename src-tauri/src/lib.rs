@@ -8,8 +8,9 @@ use tauri::window::Color;
 #[tauri::command]
 async fn open_window(app: tauri::AppHandle, label: String) {
     tauri::WebviewWindowBuilder::new(&app, label, tauri::WebviewUrl::App("index.html".into()))
-        .inner_size(1120.0, 630.0)
         .background_color(Color(10, 10, 10, 1))
+        .min_inner_size(400.0, 40.0)
+        .inner_size(1120.0, 630.0)
         .decorations(false)
         .focused(true)
         .center()

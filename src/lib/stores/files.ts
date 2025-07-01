@@ -2,9 +2,10 @@ import * as path from '@tauri-apps/api/path'
 import { exists, lstat, mkdir, remove, rename, writeTextFile } from '@tauri-apps/plugin-fs'
 import { toast } from 'sonner'
 import { create } from 'zustand'
-import loadFilesFromDisk, { TreeData } from '../scripts/load-files'
+import loadFilesFromDisk, { TreeData, TreeItem } from '../scripts/load-files'
 import { useMeimeiStore } from './meimei'
 import { useTabStore } from './tabs'
+import { convertFileSrc } from '@tauri-apps/api/core'
 
 export interface File {
     dir: boolean
@@ -28,9 +29,11 @@ export interface Selection {
 
 interface FilesStore {
     files: TreeData
+    assetUrls: Record<string, string>
     selected?: string
     expanded: Record<string, boolean>
     selection: Record<string, Selection>
+    supported: string[]
 
     dialogOpen: boolean
     dialogContext: any
@@ -56,9 +59,11 @@ interface FilesStore {
 
 export const useFilesStore = create<FilesStore>((set, get) => ({
     files: {} as TreeData,
+    assetUrls: {},
     selected: undefined,
     expanded: {},
     selection: {},
+    supported: ["md", "png", "jpg", "jpeg"],
 
     dialogOpen: false,
     dialogContext: {},
@@ -212,8 +217,10 @@ export const useFilesStore = create<FilesStore>((set, get) => ({
         const files = await loadFilesFromDisk(base)
         let availablePaths: string[] = []
         Object.keys(files.items).map(k => availablePaths.push(files.items[k].data?.path))
-        set({ files })
+        let assetUrls = getAssetUrls(files.items);
+        set({ files, assetUrls })
         get().reconcileExpanded(availablePaths)
+        console.log(assetUrls)
     },
 
     persist: async () => {
@@ -232,3 +239,17 @@ export const useFilesStore = create<FilesStore>((set, get) => ({
         get().persist()
     },
 }))
+
+function getAssetUrls(files: Record<string, TreeItem>): Record<string, string> {
+    let assetUrls: Record<string, string> = {}
+    Object.entries(files).map(([path, file]) => {
+        if (["png", "jpeg", "jpg"].includes(file.extension || "")) {
+            assetUrls[path] = convertFileSrc(path);
+        }
+    })
+    return assetUrls
+}
+
+export function isImg(ext: string): boolean {
+    return ["png", "jpeg", "jpg"].includes(ext)
+}

@@ -10,7 +10,7 @@ export type EditorTab = {
 
 export type Tab = {
     value: string
-    type: "editor" | ""
+    type: "editor" | "image"
 }
 
 interface TabStore {
@@ -66,11 +66,10 @@ export const useTabStore = create<TabStore>()(
             })
 
             state.persist()
-        }
-        ,
+        },
 
         remove: (index: number) => {
-            const { tabs, value, history } = get()
+            const { tabs, value, history, TabDataMap } = get()
             const removedTab = tabs[index]
             if (!removedTab) return;
 
@@ -85,11 +84,14 @@ export const useTabStore = create<TabStore>()(
             }
             newSelectedIndex = newTabs.findIndex((t) => t.value === newValue)
 
+            delete TabDataMap[value]
+
             set({
                 tabs: newTabs,
                 value: newValue,
                 selectedIndex: newSelectedIndex,
-                history: newHistory
+                history: newHistory,
+                TabDataMap
             })
 
             get().persist()

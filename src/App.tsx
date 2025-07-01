@@ -5,8 +5,8 @@ import { getAllWebviewWindows } from '@tauri-apps/api/webviewWindow';
 import { exists } from '@tauri-apps/plugin-fs';
 import { load } from '@tauri-apps/plugin-store';
 import { useEffect, useState } from "react";
-import WorkspaceManager from './lib/components/workspace-manager';
 import WorkspaceDialog from './lib/components/workspace-dialog';
+import WorkspaceManager from './lib/components/workspace-manager';
 import { decodeFilePath, encodeFilePath, useMeimeiStore } from './lib/stores/meimei';
 import Workspace from './Workspace';
 

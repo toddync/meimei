@@ -8,6 +8,7 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { Input } from '@/components/ui/input'
+import { Separator } from '@/components/ui/separator'
 import { dirname, join } from '@tauri-apps/api/path'
 import { lstat } from '@tauri-apps/plugin-fs'
 import type { TreeProps } from 'antd'
@@ -17,13 +18,12 @@ import { ChevronRight, FilePlus, FolderPlus, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { v4 as uuid } from 'uuid'
-import { useFilesStore } from '../stores/files'
+import { isImg, useFilesStore } from '../stores/files'
 import { useMeimeiStore } from '../stores/meimei'
 import { useTabStore } from '../stores/tabs'
 import FileDialog from './file-dialog'
 import TreeFile from './tree-file'
 import TreeFolder from './tree-folder'
-import { Separator } from '@/components/ui/separator'
 
 interface FileTreeProps {
     treeData: {
@@ -45,9 +45,11 @@ export function FileTree({ treeData }: FileTreeProps) {
     const antTreeData: DataNode[] = convertToAntTree(treeData)?.[0]?.children || []
 
     const onSelect: TreeProps['onSelect'] = (_, { node }) => {
-        if (node.isLeaf) {
+        let store = useFilesStore.getState()
+        let file = store.files.items[node.key as string];
+        if (node.isLeaf && store.supported.includes(file.extension || "")) {
             let path = node.key as string;
-            addTab({ value: uuid(), type: "editor" }, treeData.items[path].data);
+            addTab({ value: uuid(), type: isImg(file.extension || "") ? "image" : "editor" }, treeData.items[path].data);
             selectTab(path);
             setSelected(path);
         }
@@ -75,7 +77,6 @@ export function FileTree({ treeData }: FileTreeProps) {
     const handleDrop: TreeProps['onDrop'] = info => {
         const dragKey = info.dragNode.key as string
         const dropKey = info.node.key as string;
-
 
         (async () => {
             let dropInfo = await lstat(dropKey)
@@ -110,7 +111,7 @@ export function FileTree({ treeData }: FileTreeProps) {
                 }
             }}>
             <Tree
-                className='overflow-auto h-full flex flex-col'
+                className='overflow-auto h-full  flex flex-col'
                 draggable
                 onDrop={handleDrop}
                 onSelect={onSelect}
@@ -182,7 +183,6 @@ function convertToAntTree(tree: {
 
     return [buildNode(tree.rootId)]
 }
-
 
 function FileDropdown() {
     const [open, setOpen] = useState<boolean>(false)

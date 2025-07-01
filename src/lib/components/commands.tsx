@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/command"
 import { useEffect, useState } from "react"
 import { useCommandStore } from "../stores/command"
-import { useFilesStore } from "../stores/files"
+import { isImg, useFilesStore } from "../stores/files"
 import { TreeItem } from "../scripts/load-files"
 import { useMeimeiStore } from "../stores/meimei"
 import { Tab, useTabStore } from "../stores/tabs"
@@ -94,7 +94,7 @@ export default function Commands() {
                                 <CommandItem
                                     key={i}
                                     onSelect={() => {
-                                        addTab({ value: uuidv4(), type: "editor" }, file.data)
+                                        addTab({ value: uuidv4(), type: isImg(file.data.extension) ? "image" : "editor" }, file.data)
                                         select(file?.data.path)
                                         //@ts-ignore
                                         setSelected(file)

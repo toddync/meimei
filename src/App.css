@@ -230,7 +230,7 @@ p {
     @apply flex;
 }
 
-.ant-tree-switcher-noop,
+/* .ant-tree-switcher-noop, */
 .ant-tree-draggable-icon {
     display: none;
 }
@@ -240,5 +240,13 @@ p {
 }
 
 .ant-tree-list {
-    @apply flex-1 min-w-fit overflow-hidden !pt-1.5;
+    @apply flex-1 min-w-fit pt-1.5 pr-5 pb-5;
+}
+
+.react-viewer-mask {
+    @apply hidden;
+}
+
+.react-viewer-toolbar {
+    @apply !h-10 !space-x-3;
 }

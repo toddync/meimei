@@ -188,7 +188,7 @@ export function Editor({ id, content, selection, publishChange, publishSelection
 
     useEffect(() => {
         toCustom(editor)
-        setFocus(() => requestAnimationFrame(() => editor.focus()))
+        // setFocus(() => requestAnimationFrame(() => editor.focus()))
         return () => {
             setFocus(undefined)
             debouncedPublish.cancel();

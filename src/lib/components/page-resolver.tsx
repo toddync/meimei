@@ -32,7 +32,7 @@ export default function PageResolver() {
 
     if (!tabs || tabs.length == 0) {
         return (
-            <div className="mx-auto my-auto flex flex-col gap-2">
+            <div className="mx-auto my-auto flex flex-col gap-2 page-h">
                 <img src={blooming} className='size-80 dark:opacity-70' />
                 <span className="mx-auto text-muted-foreground">
                     So empty... Let's grow this garden together!
